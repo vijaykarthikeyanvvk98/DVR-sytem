@@ -121,7 +121,9 @@ ApplicationWindow {
 
         Component.onCompleted:
         {
-            VideoStreamer.openVideoCamera(0);
+            //VideoStreamer.openVideoCamera(0);
+             VideoStreamer.openVideoCamera();
+
             //VideoStreamer.openVideoCamera2("rtsp://admin:vikra@123@192.168.56.50.554/cam/realmonitor?channel=1&subtype=0");
             //VideoStreamer.openVideoCamera2(1);
             //VideoStreamer.qImageToCvMat();
@@ -164,12 +166,12 @@ ApplicationWindow {
         {
             target: VideoStreamer
 
-            /*function onRecording_stop()
+            function onRecording_stop()
             {
-                template_text2.text="Alert!!!"
-                template_content2.text="Video has been saved successfully!!!"
-                message_template2.open()
-            }*/
+                //template_text2.text="Alert!!!"
+                //template_content2.text="Video has been saved successfully!!!"
+                //message_template2.open()
+            }
         }
 
         Item {
@@ -731,18 +733,33 @@ ApplicationWindow {
                   opacity: statusindicator.opacity
               }*/
 
-      /*Text {
+      Text {
                         id: timerText
                         color: "White"
-                        visible: false
+                        visible: statusindicator.visible
                         anchors.left: statusindicator.right
                         anchors.leftMargin:0.005*root.width
-                        anchors.bottom: imageRect.bottom
-                        anchors.bottomMargin: 0.005*parent.width
+                        anchors.bottom: statusindicator.bottom
+                        //anchors.bottomMargin: 0.005*parent.width
                         font.pixelSize:Math.min(root.width/47,root.height/37)
                         opacity: statusindicator.opacity
-                    }*/
+                    }
 
+      Rectangle
+      {
+          id:statusindicator
+          anchors
+          {
+              bottom:imageRect.bottom
+              left:imageRect.left
+              margins:0.005*root.width
+          }
+          width:0.015*root.width
+          height: width
+          radius:100
+          color: "red"
+          visible: false
+      }
 
       Rectangle
       {
@@ -769,7 +786,7 @@ ApplicationWindow {
                       onTriggered: {
                           updateTimer_2();
                       }
-      }*/
+      }
 
       function updateTimer_2() {
                                 // This function will be called every time the timer triggers
@@ -782,7 +799,7 @@ ApplicationWindow {
 
 
                                             mission_timer.elapsedTime++;
-                            }
+                            }*/
 
       /*Label {
                           id:mission_time_count
@@ -831,8 +848,8 @@ ApplicationWindow {
 onClosing:
 {
     //myLink.export_log();
-    //VideoStreamer.stop_script();
-    //VideoStreamer.stop_recording()
+    VideoStreamer.stop_script();
+    VideoStreamer.stop_recording()
 }
 
 
@@ -925,11 +942,155 @@ Rectangle
     radius:0.005*root.width
     anchors.bottom: imageRect.bottom
     anchors.bottomMargin: 0.005*root.width
-    width: 0.1*root.width
-    height:0.075*root.width
+    width: 0.15*root.width
+    height:0.09*root.width
 
 }
 
+Rectangle
+{
+    id:sub_rect
+    color: "black"
+    opacity:0.5
+    anchors.left: main_rect.right
+    radius:0.005*root.width
+    anchors.bottom: imageRect.bottom
+    anchors.bottomMargin: 0.005*root.width
+    width: 0.15*root.width
+    height:0.09*root.width
+
+}
+
+Button
+    {
+        id: overlay_button
+        width:0.03*root.width
+        height:0.03*root.width
+        //Layout.alignment: Qt.AlignHCenter
+        visible: true
+
+        property bool talk:false
+        focus: true  // Ensure this item can receive keyboard events
+
+        background: Rectangle
+        {
+            anchors.fill:parent
+            color:"grey"//"#011026"
+            opacity:1.0
+            radius:100
+        }
+        anchors
+        {
+            top:sub_rect.top
+            topMargin:0.005*root.width
+            horizontalCenter:sub_rect.horizontalCenter
+            //bottom:box_5.bottom
+            //bottomMargin:0.005*parent.width
+            //horizontalCenterOffset:+0.32*box_5.width
+        }
+
+        /*contentItem: Text {
+            text:"Start"
+            //font.family: "Segoe UI Black"
+            font.pointSize: Math.min(root.width/70,root.height/60)//0.01*header.width
+            style: Text.Sunken
+            //font: export_log.font
+            //opacity: enabled ? 1.0 : 0.3
+            color:"White"
+            horizontalAlignment: Text.AlignHCenter
+            verticalAlignment: Text.AlignVCenter
+            //elide: Text.ElideRight
+        }*/
+        contentItem: Image {
+            id:area_15
+            source: "qrc:/dvr_system/images/mike_off.png"
+            width:0.9*parent.width
+            height:0.9*parent.width
+            anchors.centerIn: parent
+        }
+        MouseArea
+        {
+            anchors.fill: parent
+            hoverEnabled: true
+
+            onClicked:
+            {
+
+                //capture_map_image()
+                if(area_15.source=="qrc:/dvr_system/images/mike_off.png")
+                {
+                    VideoStreamer.push_to_talk(false)
+
+                    area_15.source="qrc:/dvr_system/images/mike_on.png"
+                }
+
+                else
+                {
+                }
+            }
+            onEntered:
+            {
+                tooltip_set(mike_on_off.x+mouseX,mike_on_off.y-mike_on_off.height,"Push to Talk")
+            }
+
+            onExited:
+            {
+                tooltip_reset()
+            }
+
+            onPressed:
+            {
+                if(area_15.source=="qrc:/dvr_system/images/mike_on.png")
+                {
+                    if(mike_on_off.talk==false)
+                    {
+                        VideoStreamer.start_script()
+                        VideoStreamer.push_to_talk(true)
+                        mike_on_off.talk=true
+                    }
+                }
+            }
+
+            onPressAndHold:
+            {
+                if(area_15.source=="qrc:/dvr_system/images/mike_on.png")
+                {
+                    if(mike_on_off.talk==false)
+                    {
+                        VideoStreamer.push_to_talk(true)
+                        mike_on_off.talk=true
+                    }
+                }
+            }
+
+            onReleased:
+            {
+
+                if(mike_on_off.talk==true)
+                {
+                    VideoStreamer.push_to_talk(false)
+                }
+
+                mike_on_off.talk=false
+
+            }
+
+            onDoubleClicked:
+            {
+                if(area_15.source=="qrc:/dvr_system/images/mike_on.png")
+                {
+                    mike_on_off.talk=false
+                    area_15.source="qrc:/dvr_system/images/mike_off.png"
+                    VideoStreamer.push_to_talk(true)
+
+                }
+
+
+            }
+
+
+        }
+    }
 RowLayout
                     {
                     id:main_row
@@ -1005,8 +1166,8 @@ RowLayout
                                             Button
                                                 {
                                                     id:start_stop_recording
-                                                    width:0.02*root.width
-                                                    height:0.02*root.width
+                                                    width:0.03*root.width
+                                                    height:0.03*root.width
                                                     anchors
                                                     {
                                                         top:main_rect.top
@@ -1066,25 +1227,25 @@ RowLayout
                                                                 if(start_or_stop)
                                                                 {
                                                                     record_tool_text="Stop and\nSave Recording"
-                                                                //statusindicator.color="darkgreen";
-                                                                //VideoStreamer.start_recording();
-                                                                //console.log("Record started")
-                                                                //timerText.visible=true
-                                                                //start_Timer.start()
+                                                                statusindicator.color="darkgreen";
+                                                                VideoStreamer.start_recording();
+                                                                console.log("Record started")
+                                                                statusindicator.visible=true
+                                                                start_Timer.start()
                                                                     pause_recording.visible=true
                                                                 }
 
                                                                 else if(!start_or_stop)
                                                                 {
-                                                                    /*record_tool_text="Start\nVideo Recording"
+                                                                    record_tool_text="Start\nVideo Recording"
                                                                     statusindicator.color="red"
                                                                     VideoStreamer.stop_recording();
-                                                                    //console.log("Recording stopped");
+                                                                    console.log("Recording stopped");
                                                                     start_Timer.elapsedTime=0
                                                                     timerText.text="00:00:00"
-                                                                    timerText.visible=false
+                                                                    statusindicator.visible=false
                                                                     pause_recording.visible=false
-                                                                    start_Timer.stop()*/
+                                                                    start_Timer.stop()
 
 
                                                                 }
@@ -1103,12 +1264,12 @@ RowLayout
                                                             onEntered:
                                                             {
 
-                                                               //tooltip_set(start_stop_recording.x+mouseX,start_stop_recording.y-0.05*root.height,record_tool_text)
+                                                               tooltip_set(start_stop_recording.x+mouseX,start_stop_recording.y-0.05*root.height,record_tool_text)
                                                             }
 
                                                             onExited:
                                                             {
-                                                                //tooltip_reset()
+                                                                tooltip_reset()
                                                             }
                                                         }
                                                 }
@@ -1118,8 +1279,8 @@ RowLayout
                                                     id:pause_recording
                                                     //implicitWidth: pause_recording.visible?start_stop_recording.implicitWidth:0
                                                     //implicitHeight: start_stop_recording.implicitHeight
-                                                    width:pause_recording.visible?0.02*root.width:0
-                                                    height:0.02*root.width
+                                                    width:pause_recording.visible?0.03*root.width:0
+                                                    height:0.03*root.width
                                                     visible: false
                                                     //Layout.alignment: visible?Qt.AlignHCenter:0
                                                     anchors
@@ -1228,8 +1389,8 @@ RowLayout
                     Button
                         {
                             id: capture_ss
-                            width:0.02*root.width
-                            height:0.02*root.width
+                            width:0.03*root.width
+                            height:0.03*root.width
                             //Layout.alignment: Qt.AlignHCenter
                             visible: true
                             background: Rectangle
@@ -1299,8 +1460,8 @@ RowLayout
                     Button
                         {
                             id: video_on_off
-                            width:0.02*root.width
-                            height:0.02*root.width
+                            width:0.03*root.width
+                            height:0.03*root.width
                             //Layout.alignment: Qt.AlignHCenter
                             visible: true
                             background: Rectangle
@@ -1371,7 +1532,7 @@ RowLayout
                                 }
                                 onEntered:
                                 {
-                                    tooltip_set(capture_ss.x+mouseX,capture_ss.y-capture_ss.height,"Capture the\n Frame")
+                                    tooltip_set(video_on_off.x+mouseX,video_on_off.y-video_on_off.height,"Turn on\n Web Cam")
                                 }
 
                                 onExited:
@@ -1385,8 +1546,8 @@ RowLayout
                     Button
                         {
                             id: mike_on_off
-                            width:0.02*root.width
-                            height:0.02*root.width
+                            width:0.03*root.width
+                            height:0.03*root.width
                             //Layout.alignment: Qt.AlignHCenter
                             visible: true
 
@@ -1461,15 +1622,15 @@ RowLayout
 
                                 onPressed:
                                 {
-                                    /*if(area_12.source=="qrc:/dvr_system/images/mike_on.png")
+                                    if(area_12.source=="qrc:/dvr_system/images/mike_on.png")
                                     {
                                         if(mike_on_off.talk==false)
                                         {
-                                            //VideoStreamer.start_script()
+                                            VideoStreamer.start_script()
                                             VideoStreamer.push_to_talk(true)
-                                            //mike_on_off.talk=true
+                                            mike_on_off.talk=true
                                         }
-                                    }*/
+                                    }
                                 }
 
                                 onPressAndHold:

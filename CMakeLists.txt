@@ -7,9 +7,16 @@ set(OpenCV_DIR
 )
 
 find_package(OpenCV REQUIRED)
+find_package(PkgConfig REQUIRED)
 
 find_package(Qt6 6.5 REQUIRED COMPONENTS Core Widgets Quick)
 find_package(Qt6 REQUIRED COMPONENTS Core)
+pkg_check_modules(GST REQUIRED
+    gstreamer-1.0
+    gstreamer-video-1.0
+    gstreamer-audio-1.0
+    gstreamer-app-1.0
+)
 
 qt_standard_project_setup()
 
@@ -36,6 +43,17 @@ target_link_libraries(dvr_system
         ${OpenCV_LIBS}
 )
 target_link_libraries(dvr_system PRIVATE Qt6::Core)
+target_include_directories(dvr_system PRIVATE
+    ${GST_INCLUDE_DIRS}
+)
+
+target_link_directories(dvr_system PRIVATE
+    ${GST_LIBRARY_DIRS}
+)
+
+target_link_libraries(dvr_system PRIVATE
+    ${GST_LIBRARIES}
+)
 
 include(GNUInstallDirs)
 
