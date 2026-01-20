@@ -1017,21 +1017,11 @@ Button
             onClicked:
             {
 
-                //capture_map_image()
-                if(area_15.source=="qrc:/dvr_system/images/mike_off.png")
-                {
-                    VideoStreamer.push_to_talk(false)
 
-                    area_15.source="qrc:/dvr_system/images/mike_on.png"
-                }
-
-                else
-                {
-                }
             }
             onEntered:
             {
-                tooltip_set(mike_on_off.x+mouseX,mike_on_off.y-mike_on_off.height,"Push to Talk")
+                tooltip_set(overlay_button.x+mouseX,overlay_button.y-overlay_button.height,"Overlay option")
             }
 
             onExited:
@@ -1041,38 +1031,15 @@ Button
 
             onPressed:
             {
-                if(area_15.source=="qrc:/dvr_system/images/mike_on.png")
-                {
-                    if(mike_on_off.talk==false)
-                    {
-                        VideoStreamer.start_script()
-                        VideoStreamer.push_to_talk(true)
-                        mike_on_off.talk=true
-                    }
-                }
             }
 
             onPressAndHold:
             {
-                if(area_15.source=="qrc:/dvr_system/images/mike_on.png")
-                {
-                    if(mike_on_off.talk==false)
-                    {
-                        VideoStreamer.push_to_talk(true)
-                        mike_on_off.talk=true
-                    }
-                }
+
             }
 
             onReleased:
             {
-
-                if(mike_on_off.talk==true)
-                {
-                    VideoStreamer.push_to_talk(false)
-                }
-
-                mike_on_off.talk=false
 
             }
 
