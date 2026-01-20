@@ -1,0 +1,1547 @@
+import QtQuick 2.15
+import Qt.labs.platform 1.1
+import QtQuick.Controls 2.15
+import QtQuick.Layouts 1.3
+import QtMultimedia 5.15
+import QtQuick.Window 2.15
+import QtQml.WorkerScript 2.15
+import QtQml 2.15
+import QtQuick.Controls.Material 2.15
+//import com.link 1.0
+ApplicationWindow {
+    id:root
+    visible:true
+    color:"black"
+
+
+
+
+    signal  map_image_Captured()
+    property string vid_path: ""
+    property real y6: 0.0
+    property bool edit_not: false
+    property color neonblue: "#00FFFF"
+    property color neonGreen: "#39FF14"
+    property string ip_address: ""
+    property int speed_min: 1000
+    property int speed_max: 2000
+    property real pitch: 0.0
+    property string yaw: "0.0\u00B0"
+    property real roll: 0.0
+    property string temp: "0.0\u00B0C"
+    property string press: "0 (mbar)"
+    property string depth: "0(m)"
+    property string voltage: "0.0 V(0%)"
+    property string battery: ''
+
+
+    property real channel_1:  0.0
+    property real channel_2:  0.0
+    property real channel_3:  0.0
+    property real channel_4:  0.0
+    property real z_axis:  0.0
+    property real l:  0.0
+    property real r:  0.0
+    property int arm: 0
+    property bool arm_status: false
+    property bool arm_status2: false
+    property int mapped_x_axis: 0
+    property int mapped_y_axis: 0
+    property int mapped_z_axis: 0
+    property int intensity: 0
+    property int volume: 0
+
+    property bool connect_pop_status: false
+    property bool connection_status:false
+    property bool connect_status:true
+
+    property real size:             100
+    property real _reticleHeight:   1
+    property real _reticleSpacing:  size * 0.15
+    property real _reticleSlot:     _reticleSpacing + _reticleHeight
+    property real _longDash:        size * 0.35
+    property real _shortDash:       size * 0.25
+    property real _fontSize:        0.005*root.width
+
+    property var data_model:["qrc:/dvr_system/images/compass-needle.png","qrc:/dvr_system/images/temperature.png","qrc:/dvr_system/images/pressure.png","qrc:/dvr_system/images/depth.png"/*,"qrc:/dvr_system/images/100%.png"*/]
+    property var data_model2:["0.0\u00B0","0.0\u00B0C","0 (mbar)","0(m)"/*,"0.0 V(0%)"*/]
+
+
+    property real yaw_value: 0
+
+    property bool selectall_status3: false
+    property bool start_or_stop: false
+    property bool pause_play: false
+    property string record_tool_text: "Start\nVideo Recording"
+
+    property string record_tool_text2: "Pause Recording"
+
+    property bool start_status: false
+    property bool browser_status: false
+
+    property bool stop_status: false
+    property bool pause_status: false
+    property bool pause_status2: false
+
+    property int a_mode: 0
+    property int b_mode: 0
+    property int c_mode: 0
+    property int d_mode: 0
+    property int start_mode: 1
+    property int select_mode: 2
+    property int l1_mode: 8
+    property int l2_mode: 0
+    property int r1_mode: 9
+    property int r2_mode: 0
+    property int left_mode: 0
+    property int right_mode: 0
+    property int up_mode: 0
+    property int down_mode: 0
+    property int lX_mode: 0
+    property int lY_mode: 0
+    property int rX_mode: 0
+    property int rY_mode: 0
+    property int joystick_mode: 0
+    property string direction : "S"
+    property string graph_direction:""
+    property bool button_Pressed: false  // Track space key state
+
+    //Enhancement parameters
+
+    property real bright: 0.0
+    property real contrast: 0.0
+
+    property bool online: false
+    property bool online_2: false
+
+
+    /*Image {
+        id: photoPreview
+    }*/
+
+        Component.onCompleted:
+        {
+            VideoStreamer.openVideoCamera(0);
+            //VideoStreamer.openVideoCamera2("rtsp://admin:vikra@123@192.168.56.50.554/cam/realmonitor?channel=1&subtype=0");
+            //VideoStreamer.openVideoCamera2(1);
+            //VideoStreamer.qImageToCvMat();
+            //VideoStreamer.openVideoCamera("tcpclientsrc host=192.168.56.1 port=5000 ! gdpdepay ! rtph264depay ! h264parse ! avdec_h264 ! videoconvert ! autovideosink");
+            opencvImage.visible=true;
+            //timerText.text="00"+":"+"00"+":"+"00";
+            //timerText.visible=true
+            //start_Timer.start()
+            //mission_timer.start();
+
+            fileModel.append({ fileName: "C:/Users/Vijay/Documents/rough.txt" });
+           //fileModel.append({ fileName: "file2.txt" });
+            //stack.push(live_stream)
+        }
+
+        /*Link
+        {
+            id:myLink
+        }*/
+
+        Connections{
+            target: liveImageProvider
+
+            function onImageChanged()
+            {
+                opencvImage2.reload()
+                //opencvImage.reload()
+            }
+
+            function onImageChanged2()
+            {
+                opencvImage.reload()
+                //opencvImage2.reload()
+            }
+
+
+        }
+
+        Connections
+        {
+            target: VideoStreamer
+
+            /*function onRecording_stop()
+            {
+                template_text2.text="Alert!!!"
+                template_content2.text="Video has been saved successfully!!!"
+                message_template2.open()
+            }*/
+        }
+
+        Item {
+            focus: true
+        Keys.onPressed: {
+           /* if (event.key === Qt.Key_Tab) {
+                //button_Pressed =!button_Pressed
+                console.log("Button Pressed");
+                         if(button_Pressed)
+                         {
+                            //console.log("True");
+                             button_Pressed=false;
+                             VideoStreamer.pushback(true)
+                         }
+                         else if(!button_Pressed)
+                         {
+                             //console.log("False");
+                            button_Pressed=true;
+                             VideoStreamer.pushback(false)
+                         }
+                      }*/
+        }
+
+        Keys.onReleased:   {
+
+            if (event.key === Qt.Key_Space) {
+                //button_Pressed =!button_Pressed
+                //console.log("Button Pressed");
+                         if(button_Pressed)
+                         {
+                            //console.log("True");
+                             button_Pressed=false;
+                             VideoStreamer.pushback(false)
+                         }
+                         else if(!button_Pressed)
+                         {
+                             //console.log("False");
+                            button_Pressed=true;
+                             VideoStreamer.pushback(true)
+                         }
+                      }
+
+
+        }
+        }
+
+        Rectangle{
+            id: imageRect
+            //anchors.horizontalCenter: parent.horizontalCenter
+            //anchors.verticalCenter: parent.verticalCenter
+            //anchors.verticalCenterOffset: 0.039*parent.width
+            anchors.left: parent.left
+            anchors.right:parent.right
+            anchors.top: parent.top
+            anchors.bottom: parent.bottom
+            height: 0.95*parent.height
+            anchors.margins: 0.005*parent.width
+            color: "black"
+            border.color: "white"
+            border.width: 3
+            visible: true
+            Image{
+                id: opencvImage
+                width: 0.99*parent.width
+                height:0.99*parent.height
+                anchors.centerIn: parent
+                fillMode: Image.PreserveAspectFit
+                property bool counter: false
+                visible: true
+                source:"qrc:/dvr_system/images/dummy_template3.jpg"
+                asynchronous: false
+                cache: false
+
+
+                function reload()
+                {
+                    counter = !counter
+                    source = "image://live/image?id=" + counter
+                }
+
+            }
+
+        }
+
+        Rectangle{
+            id: imageRect2
+            anchors.bottom: imageRect.bottom
+            anchors.bottomMargin: 0.005*parent.width
+            anchors.right: imageRect.right
+            anchors.rightMargin: 0.005*parent.width
+            width: 0.15*parent.width
+            height: 0.175*parent.height
+            //anchors.margins: 0.005*parent.width
+            color: "black"
+            border.color: "white"
+            border.width: 3
+            visible: true
+            opacity:1.0
+            scale:1
+
+            Image{
+                id: opencvImage2
+                width: 0.975*parent.width
+                height:0.9*parent.height
+                anchors.centerIn: parent
+                fillMode: Image.PreserveAspectFit
+                property bool counter: false
+                visible: true
+                source:"qrc:/dvr_system/images/dummy_template3.jpg"
+                asynchronous: false
+                cache: false
+
+
+                function reload()
+                {
+                    counter = !counter
+                    source = "image://live/image?id=" + counter
+                }
+
+            }
+
+        }
+
+        /*Dialog
+            {
+                id:message_template
+                //standardButtons: StandardButton.Ok|StandardButton.Cancel
+                //title:"Confirmation"
+                z:2
+                anchors.centerIn: parent
+
+                header: Text
+                            {
+                                id:template_text
+                                color: "white"
+                                text:"Confirmation"
+                                font.bold: true
+                                font.pointSize: 0.01*root.width
+                                style: Text.Sunken
+                                anchors.top:parent.top
+                                anchors.topMargin:0.01*parent.width
+                                anchors.left:parent.left
+                                anchors.leftMargin:0.05*parent.width
+                            }
+
+                contentItem : Text
+                                {
+                                    id:template_content
+                                    color: "white"
+                                    verticalAlignment: Text.AlignVCenter
+                                    horizontalAlignment: Text.AlignHCenter
+                                    font.pointSize: 0.00725*root.width
+                                    style: Text.Sunken
+                                    anchors.top:template_text.bottom
+                                    anchors.topMargin:0.04*parent.width
+                                    anchors.left:parent.left
+                                    anchors.leftMargin:0.05*parent.width
+                                    anchors.right:parent.right
+                                    anchors.rightMargin:0.05*parent.width
+                                }
+                footer:DialogButtonBox {
+                    alignment: Qt.AlignCenter
+                    buttonLayout : DialogButtonBox.WinLayout
+                    background: Rectangle
+                                    {
+                                        anchors.fill:parent
+                                        color:"transparent"
+
+                                    }
+
+                    Button {
+                        //text: qsTr("Save")
+                        DialogButtonBox.buttonRole: DialogButtonBox.AcceptRole
+                        background: Rectangle
+                        {
+                            color:"#1a3154"
+                        }
+
+                        contentItem: Text {
+                            id:response_button1
+                            text:"Save"
+                            font.pixelSize:  Math.min(root.width/90,root.height/70)
+                            style: Text.Sunken
+                            color:"White"
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                        }
+                    }
+
+                    Button {
+
+                        DialogButtonBox.buttonRole: DialogButtonBox.RejectRole
+                        background: Rectangle
+                        {
+                            color:"#1a3154"
+                        }
+
+                        /*layer.enabled: true
+                        layer.effect:  Glow {
+                            radius:0.075*parent.width
+                            samples: 20
+                            color:button_state_5===false?"#00FFFF":neonGreen
+                            //transparentBorder: true
+                        }*/
+
+                        /*contentItem: Text {
+                            id:response_button2
+                            text:"Close"
+                            font.pixelSize:  Math.min(root.width/90,root.height/70)
+                            style: Text.Sunken
+                            color:"White"
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                        }
+                    }
+                }
+
+                background: Rectangle
+                                {
+                                    color:"black"
+                                    opacity:0.75
+                                    radius:0.01*parent.width
+                                    border.color:"#21be2b"
+                                }
+
+                onAccepted:
+                {
+                    if(connect_pop_status==true)
+                    {
+                        if(connection2.source == "qrc:/dvr_system//images/connect.png")
+                        {
+                           connect_status = true
+                           //myLink.connect_to_ip(ip_address)
+                           //myLink.receive_qml(0,1500,1500,1500,0,connect_status)
+                            connection2.source = "qrc:/dvr_system//images/connected.png"
+                            mission_timer.start()
+                           template_text2.text="Acknowledgement"
+                            template_content2.text="Alert!!!\nDevice has been connected successfully"
+                            message_template2.open()
+                        }
+                        else if(connection2.source == "qrc:/dvr_system//images/connected.png")
+                        {
+                            if(!connection_status)
+                            {
+
+                            //myLink.reset_ip();
+                            connection2.source = "qrc:/dvr_system//images/connect.png"
+                            connect_status = !connect_status
+                            timer_reset();
+                            template_text2.text="Acknowledgement"
+                             template_content2.text="Alert!!!\nDevice is disconnected successfully"
+                             message_template2.open()
+                            }
+                            else if(connection_status)
+                            {
+
+                            }
+                        }
+                    }
+
+                    else if(coordinate_pop_status==true)
+                    {
+
+                    }
+
+                    else if(log_save_status1==true)
+                    {
+                        //myLink.writeToLogFile();
+                        template_text2.text="Acknowledgement"
+                        template_content2.text="Log Data has been saved successfully"
+                        message_template2.open()
+                    }
+
+                    else if(gps_valid==true)
+                    {
+                        drawer.open()
+                    }
+
+                    message_template.close()
+                }
+                onRejected:
+                {
+                    message_template.close()
+                }
+            }*/
+
+        function connect_stats(string)
+        {
+            clear_status()
+            template_text.text="Confirmation"
+            template_content.text="Do you want to connect to the selected Device?"
+            response_button1.text="Yes"
+            response_button2.text="No"
+            connect_pop_status=true
+            message_template.open()
+        }
+
+        function disconnect_stats()
+        {
+            clear_status()
+            template_text.text="Confirmation"
+            template_content.text="Do you want to disconnect the selected Device?"
+            response_button1.text="Yes"
+            response_button2.text="No"
+            connect_pop_status=true
+            message_template.open()
+        }
+
+        function clear_status()
+        {
+            //pop4_status=pop2_status=mission_pop_status=false;
+            //gps_valid=connect_pop_status=false;
+            connect_pop_status=false;
+        }
+
+
+
+        /*Dialog
+            {
+                id:message_template2
+                //standardButtons: StandardButton.Ok|StandardButton.Cancel
+                //title:"Confirmation"
+                z:2
+                anchors.centerIn: parent
+
+                header: Text
+                            {
+                                id:template_text2
+                                color: "white"
+                                text:"Acknowledgement"
+                                font.bold: true
+                                font.pointSize: 0.01*root.width
+                                style: Text.Sunken
+                                anchors.top:parent.top
+                                anchors.topMargin:0.01*parent.width
+                                anchors.left:parent.left
+                                anchors.leftMargin:0.05*parent.width
+                            }
+
+                contentItem : Text
+                                {
+                                    id:template_content2
+                                    color: "white"
+                                    verticalAlignment: Text.AlignVCenter
+                                    horizontalAlignment: Text.AlignHCenter
+                                    font.pointSize: 0.006*root.width
+                                    style: Text.Sunken
+                                    anchors.top:template_text2.bottom
+                                    anchors.topMargin:0.04*parent.width
+                                    anchors.left:parent.left
+                                    anchors.leftMargin:0.05*parent.width
+                                    anchors.right:parent.right
+                                    anchors.rightMargin:0.05*parent.width
+                                }
+                footer:DialogButtonBox {
+                    alignment: Qt.AlignCenter
+                    buttonLayout : DialogButtonBox.WinLayout
+                    background: Rectangle
+                                    {
+                                        anchors.fill:parent
+                                        color:"transparent"
+
+                                    }
+
+                    Button {
+                        //text: qsTr("Save")
+                        DialogButtonBox.buttonRole: DialogButtonBox.AcceptRole
+                        background: Rectangle
+                        {
+                            color:"#1a3154"
+                        }
+
+                        /*layer.enabled: true
+                        layer.effect:  Glow {
+                            radius:0.075*parent.width
+                            samples: 20
+                            color:button_state_5===false?"#00FFFF":neonGreen
+                            //transparentBorder: true
+                        }*/
+
+                       /* contentItem: Text {
+                            id:response_button4
+                            text:"Close"
+                            font.pixelSize:  Math.min(root.width/90,root.height/70)
+                            style: Text.Sunken
+                            color:"White"
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                        }
+                    }
+                }
+
+                background: Rectangle
+                                {
+                                    color:"black"
+                                    opacity:0.75
+                                    radius:0.01*parent.width
+                                    border.color:"#21be2b"
+                                }
+
+                onAccepted:
+                {
+                    message_template2.close()
+                }
+
+            }*/
+
+
+      /*Dialog
+          {
+              id:message_template3
+              //standardButtons: StandardButton.Ok|StandardButton.Cancel
+              //title:"Confirmation"
+              z:2
+              anchors.centerIn: parent
+
+              header: Text
+                          {
+                              id:template_text3
+                              color: "white"
+                              text:"Alert"
+                              font.bold: true
+                              font.pointSize: 0.01*root.width
+                              style: Text.Sunken
+                              anchors.top:parent.top
+                              anchors.topMargin:0.01*parent.width
+                              anchors.left:parent.left
+                              anchors.leftMargin:0.05*parent.width
+                          }
+
+              contentItem : Text
+                              {
+                                  id:template_content3
+                                  color: "white"
+                                  verticalAlignment: Text.AlignVCenter
+                                  horizontalAlignment: Text.AlignHCenter
+                                  font.pointSize: 0.0075*root.width
+                                  style: Text.Sunken
+                                  anchors.top:template_text3.bottom
+                                  anchors.topMargin:0.04*parent.width
+                                  anchors.left:parent.left
+                                  anchors.leftMargin:0.05*parent.width
+                              }
+
+              background: Rectangle
+                              {
+                                  color:"black"
+                                  opacity:0.75
+                                  radius:0.01*parent.width
+                                  border.color:"#21be2b"
+                              }
+
+              onRejected:
+              {
+                  message_template.close()
+              }
+          }*/
+
+      Timer
+      {
+          id:timer
+          repeat: true
+          running:true
+          interval: 500
+
+          onTriggered:
+          {
+              //signalEmitter.checkIP("192.168.56.1");
+
+          }
+      }
+      function tooltip_reset()
+      {
+          tooltip_template.x=0
+          tooltip_template.y=0
+          tooltip_template.text=""
+          tooltip_template.visible=false
+     }
+
+      function tooltip_set(x,y,text)
+      {
+          tooltip_template.x= x
+          tooltip_template.y= y
+          tooltip_template.text=text
+          tooltip_template.visible=true
+          start_Timer3.start()
+      }
+
+      Timer {
+          id: start_Timer3
+          interval:1500// Timer interval in milliseconds
+          running: false // Start the timer when the application starts
+
+          repeat: false
+
+
+                      onTriggered: {
+                          tooltip_reset()
+                      }
+      }
+
+
+      ToolTip
+      {
+          id:tooltip_template
+          x:0
+          y:0
+          z:1
+          text:""
+          contentItem: Text
+                         {
+                             color:neonGreen
+                             text:tooltip_template.text
+                         }
+          background: Rectangle
+                          {    color:"black"
+                              opacity:0.5
+                              border.color: "#21be2b"
+                          }
+      }
+
+
+
+
+      Timer {
+          id: start_Timer
+          interval: 1000 // Timer interval in milliseconds (1 second in this case)
+          running: false // Start the timer when the application starts
+
+          repeat: true
+
+           property int elapsedTime: 0 // Elapsed time in seconds
+
+                      onTriggered: {
+                          updateTimer();
+                      }
+      }
+      function updateTimer() {
+          // This function will be called every time the timer triggers
+          var hours = Math.floor(start_Timer.elapsedTime / 3600);
+                      var minutes = Math.floor((start_Timer.elapsedTime % 3600) / 60);
+                      var seconds = start_Timer.elapsedTime % 60;
+
+          timerText.text = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+
+
+                      start_Timer.elapsedTime++;
+      }
+
+      /*Text {
+                  id: timerText
+                  color: "White"
+                  visible: false
+                  anchors.right: statusindicator.left
+                  anchors.rightMargin:0.001*root.width
+                  anchors.top: statusindicator.top
+                  font.pixelSize:Math.min(root.width/47,root.height/37)
+                  opacity: statusindicator.opacity
+              }*/
+
+      /*Text {
+                        id: timerText
+                        color: "White"
+                        visible: false
+                        anchors.left: statusindicator.right
+                        anchors.leftMargin:0.005*root.width
+                        anchors.bottom: imageRect.bottom
+                        anchors.bottomMargin: 0.005*parent.width
+                        font.pixelSize:Math.min(root.width/47,root.height/37)
+                        opacity: statusindicator.opacity
+                    }*/
+
+
+      Rectangle
+      {
+          id:tray_3
+          anchors.left: parent.left
+          anchors.right: parent.right
+          anchors.top:parent.top
+          anchors.bottom: imageRect.top
+          anchors.margins: 0.005*parent.width
+          color: "#5978AC"
+          opacity: 0.5
+          radius: 5
+          z:0
+      }
+
+      /*Timer {
+          id: mission_timer
+          interval: 1000 // Timer interval in milliseconds (1 second in this case)
+          running: false // Start the timer when the application starts
+          repeat: true
+
+           property int elapsedTime: 0 // Elapsed time in seconds
+
+                      onTriggered: {
+                          updateTimer_2();
+                      }
+      }*/
+
+      function updateTimer_2() {
+                                // This function will be called every time the timer triggers
+                                var hours = Math.floor(mission_timer.elapsedTime / 3600);
+                                            var minutes = Math.floor((mission_timer.elapsedTime % 3600) / 60);
+                                            var seconds = mission_timer.elapsedTime % 60;
+
+                                mission_time_count_2.text = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+
+
+                                            mission_timer.elapsedTime++;
+                            }
+
+      /*Label {
+                          id:mission_time_count
+                          text: "Mission Time:"
+                          //parent: root.menuBar// Set main menu toolbar as parent for tool button
+                          anchors.top:connection.top
+                          //anchors.topMargin: model.height>parent.height/2?0:0.01*parent.height
+                          anchors.right: mission_time_count_2.left
+                          anchors.rightMargin: 0.005*parent.width
+                          //anchors.leftMargin:cam.height<root.height/2?0.025*parent.width:0.075*parent.width
+                          font.pixelSize:Math.min(root.width/65,root.height/40)//main_page.model.height>parent.height/2?Math.min(root.width/75,root.height/55):Math.min(root.width/55,root.height/35)
+                          color:root.neonGreen
+                          //z:1
+                }
+      Label {
+                          id:mission_time_count_2
+                          text: "00:00:00"
+                          //parent: root.menuBar// Set main menu toolbar as parent for tool button
+                          //anchors.top:parent.top
+                          //anchors.topMargin: model.height>parent.height/2?0:0.01*parent.height
+                          //x:parent.width/2
+                          anchors.top:connection.top
+                          anchors.right: connection.left
+                          anchors.rightMargin: 0.01*parent.width
+                          //anchors.verticalCenter: parent.verticalCenter
+                          //anchors.leftMargin:cam.height<root.height/2?0.025*parent.width:0.075*parent.width
+                          font.pixelSize:Math.min(root.width/65,root.height/40)//main_page.model.height>parent.height/2?Math.min(root.width/75,root.height/55):Math.min(root.width/55,root.height/35)
+                          color:neonGreen
+                          //z:1
+                }
+
+*/
+
+      Image {
+          id: vikra
+          source: "qrc:/dvr_system/images/vikra_2.jpeg"
+          anchors.left: imageRect.left
+          anchors.leftMargin:0.05*parent.width
+          anchors.top:parent.top
+          anchors.topMargin: 0.02*parent.height
+          //visible: cme.visible
+          width:0.055*parent.width
+          height:width
+      }
+
+onClosing:
+{
+    //myLink.export_log();
+    //VideoStreamer.stop_script();
+    //VideoStreamer.stop_recording()
+}
+
+
+
+
+function capture_map_image()
+               {
+                    var saveDirectory;
+                        if (Qt.platform.os === "windows") {
+                            saveDirectory = StandardPaths.writableLocation(StandardPaths.PicturesLocation);
+                        } else {
+                           saveDirectory = StandardPaths.writableLocation(StandardPaths.HomeLocation);
+                        }
+                        var logFileDir = saveDirectory + "/UWC Images";
+
+
+                       // Capture and save the image
+                        var rectangles = [imageRect]
+                        var rect,count_ss= 0;
+                        for (var i = 0; i < rectangles.length; i++) {
+                            (function (rect) {
+                                var date = new Date();
+                                var formattedDate = date.toLocaleString(Qt.locale("en_IN"), "dd.MM.yyyy-hh.mm.ss");
+                                var fileName = "/screenshot_" + formattedDate + "_" + i;
+                                rect.grabToImage(function (result) {
+                                    var filePath = logFileDir + fileName;
+                                    //console.log(filePath)
+                                    filePath = filePath.replace("file:///", "");
+                                    if (result.saveToFile(filePath + ".jpeg")) {
+                                        //console.log("Success: " + filePath);
+                                        count_ss++
+                                    } else {
+                                        console.log("Failure");
+                                    }
+                                }, Qt.size(opencvImage.sourceSize.width, opencvImage.sourceSize.height));
+                            })(rectangles[i]);
+                        }
+                           map_image_Captured()
+
+           }
+
+ListView {
+    id: fileListView
+    //anchors.fill: tray_5
+    visible: false
+    model: ListModel {
+        id: fileModel
+        // Add file items here
+    }
+
+    delegate: Item {
+        width: fileListView.width
+        height: 40
+
+        Rectangle {
+            width: parent.width
+            height: 40
+            color: "lightgray"
+            border.color: "gray"
+            radius: 5
+
+            Text {
+                anchors.centerIn: parent
+                text: model.fileName
+            }
+
+            MouseArea {
+                anchors.fill: parent
+                onClicked: {
+                    // Handle file selection here
+                }
+            }
+        }
+    }
+}
+onMap_image_Captured:
+{
+    clear_status()
+    template_text2.text="Capture Status Message!!!    "
+    template_content2.text="Frame has been\n Captured Successfully!!!"
+    message_template2.open()
+}
+
+Rectangle
+{
+    id:main_rect
+    color: "black"
+    opacity:0.5
+    anchors.horizontalCenter: parent.horizontalCenter
+    radius:0.005*root.width
+    anchors.bottom: imageRect.bottom
+    anchors.bottomMargin: 0.005*root.width
+    width: 0.1*root.width
+    height:0.075*root.width
+
+}
+
+RowLayout
+                    {
+                    id:main_row
+                    width: main_rect.width
+                    height:main_rect.height
+                    spacing: 0.05*root.width
+
+
+                    }
+
+
+
+                /*Text {
+                   id:title_text
+                   anchors.horizontalCenter: tray_3.horizontalCenter
+                   anchors.verticalCenter: tray_3.verticalCenter
+                   anchors.verticalCenterOffset: -0.005*tray_3.width
+                   //anchors.top: tray_3.top
+                   //anchors.topMargin: 0.025*parent.width
+                   //anchors.bottom: tray_3.bottom
+                   text:"UnderWater Digital Communication System"
+                   font.family: "Franklin Gothic Medium"
+                   font.bold: true
+                   font.pointSize:Math.min(parent.width/50,parent.height/25)
+                   style: Text.Raised
+                   color:"#f5ce0c"
+                   horizontalAlignment: Text.AlignHCenter
+                   verticalAlignment: Text.AlignVCenter
+               }*/
+
+                function timer_reset()
+                {
+                    mission_timer.stop()
+                    mission_timer.elapsedTime=0
+                }
+                /*function checkConnectivity() {
+                    var xhr = new XMLHttpRequest();
+                    xhr.onreadystatechange = function() {
+                        if (xhr.readyState === XMLHttpRequest.DONE) {
+                            online = xhr.status >= 200 && xhr.status < 300;
+                            console.log("Online status changed:", online);
+                            if(online!=online_2)
+                                connectivity_changed()
+                        }
+                    };
+                    online_2=online
+                    xhr.open('GET', 'http://www.google.com', true);
+                    xhr.send();
+                }
+                Timer {
+                    id:network_timer
+                        interval: 3000 // Check connectivity every 3 seconds
+                        running: true
+                        repeat: true
+                        onTriggered: checkConnectivity()
+                    }*/
+
+
+
+
+                    RowLayout
+                                        {
+                                            id:row
+                                            Layout.fillWidth: pause_recording.visible?true:false
+                                            /*Label
+                                            {
+                                                text: qsTr("Brightness")
+                                                font.pixelSize: Math.min(root.width/60,root.height/70)
+                                                font.bold: true
+                                                color:"white"
+                                            }*/
+                                        }
+                                            Button
+                                                {
+                                                    id:start_stop_recording
+                                                    width:0.02*root.width
+                                                    height:0.02*root.width
+                                                    anchors
+                                                    {
+                                                        top:main_rect.top
+                                                        topMargin:0.005*root.width
+                                                        horizontalCenter:main_rect.horizontalCenter
+                                                        horizontalCenterOffset:pause_recording.visible==false?0:-0.25*main_rect.width
+                                                    }
+
+                                                    Behavior on anchors.horizontalCenterOffset {
+                                                        PropertyAnimation { duration: 300; easing.type: Easing.InOutQuad }
+                                                    }
+                                                    visible: true
+                                                    background: Rectangle
+                                                    {
+                                                        anchors.fill:parent
+                                                        color:"grey"//"#011026"
+                                                        opacity:0.5
+                                                        radius:100
+                                                    }
+
+                                                    contentItem: Canvas {
+                                                        id:sta_sto
+                                                        anchors.fill: parent
+                                                        contextType: "2d"
+                                                        anchors.centerIn: parent
+
+                                                         onPaint: {
+                                                             var ctx = getContext("2d");
+                                                             ctx.clearRect(0, 0, width, height); // Clear the canvas
+
+                                                             if (!start_or_stop) {
+                                                                 ctx.fillStyle = "#eadeda";
+                                                                 ctx.beginPath();
+                                                                 ctx.moveTo(0.3 * width, 0.2 * height);
+                                                                 ctx.lineTo(0.3 * width, 0.8 * height);
+                                                                 ctx.lineTo(0.8 * width, 0.5 * height);
+                                                                 ctx.closePath();
+                                                                 ctx.fill();
+                                                                         } else { // Draw stop icon when recording
+                                                                 ctx.fillStyle = "red";
+
+                                                                             ctx.fillRect(0.3 * width, 0.25 * height, 0.45 * width, 0.5 * height);
+                                                                         }
+
+                                                         }
+                                                     }
+                                                    MouseArea
+                                                        {
+                                                            anchors.fill: parent
+                                                            hoverEnabled: true
+                                                            onClicked:
+                                                            {
+                                                                //console.log(start_or_stop)
+                                                                start_or_stop = !start_or_stop
+                                                                start_stop_recording.contentItem.requestPaint();
+
+                                                                if(start_or_stop)
+                                                                {
+                                                                    record_tool_text="Stop and\nSave Recording"
+                                                                //statusindicator.color="darkgreen";
+                                                                //VideoStreamer.start_recording();
+                                                                //console.log("Record started")
+                                                                //timerText.visible=true
+                                                                //start_Timer.start()
+                                                                    pause_recording.visible=true
+                                                                }
+
+                                                                else if(!start_or_stop)
+                                                                {
+                                                                    /*record_tool_text="Start\nVideo Recording"
+                                                                    statusindicator.color="red"
+                                                                    VideoStreamer.stop_recording();
+                                                                    //console.log("Recording stopped");
+                                                                    start_Timer.elapsedTime=0
+                                                                    timerText.text="00:00:00"
+                                                                    timerText.visible=false
+                                                                    pause_recording.visible=false
+                                                                    start_Timer.stop()*/
+
+
+                                                                }
+
+                                                            }
+                                                            onPressed:
+                                                                    {
+                                                                        start_status = !start_status
+                                                                    }
+
+                                                            onReleased:
+                                                                    {
+                                                                        start_status = !start_status
+                                                                    }
+
+                                                            onEntered:
+                                                            {
+
+                                                               //tooltip_set(start_stop_recording.x+mouseX,start_stop_recording.y-0.05*root.height,record_tool_text)
+                                                            }
+
+                                                            onExited:
+                                                            {
+                                                                //tooltip_reset()
+                                                            }
+                                                        }
+                                                }
+
+                                            Button
+                                                {
+                                                    id:pause_recording
+                                                    //implicitWidth: pause_recording.visible?start_stop_recording.implicitWidth:0
+                                                    //implicitHeight: start_stop_recording.implicitHeight
+                                                    width:pause_recording.visible?0.02*root.width:0
+                                                    height:0.02*root.width
+                                                    visible: false
+                                                    //Layout.alignment: visible?Qt.AlignHCenter:0
+                                                    anchors
+                                                    {
+                                                        top:main_rect.top
+                                                        topMargin:0.005*root.width
+                                                        horizontalCenter:main_rect.horizontalCenter
+                                                        horizontalCenterOffset:pause_recording.visible==false?0:+0.25*main_rect.width
+                                                    }
+                                                    background: Rectangle
+                                                    {
+                                                        anchors.fill:parent
+                                                        color:"grey"//"#011026"
+                                                        opacity:0.5
+                                                        radius:100
+                                                    }
+
+                                                    //layer.enabled: true
+                                                    /*layer.effect:  Glow {
+                                                        radius:0.007*parent.width
+                                                        samples: 21
+                                                        //color:pause_status===false?"#00FFFF":neonGreen
+                                                        //transparentBorder: true
+                                                    }*/
+                                                    contentItem: Canvas {
+                                                        id:pause_rec
+                                                        anchors.fill: parent
+                                                        contextType: "2d"
+                                                         anchors.centerIn: parent
+
+                                                         onPaint: {
+                                                             var ctx = getContext("2d");
+                                                             ctx.clearRect(0, 0, width, height); // Clear the canvas
+                                                             ctx.fillStyle = "#eadeda";
+
+                                                             if (!pause_play) {
+                                                                 ctx.fillStyle = "#eadeda";
+                                                             ctx.fillRect(0.30 * width, 0.2 * height, 0.15 * width, 0.6 * height);
+                                                             ctx.fillRect(0.55 * width, 0.2 * height, 0.15 * width, 0.6 * height);
+                                                                         }
+                                                             else
+                                                             {
+                                                                 ctx.fillRect(0.30 * width, 0.2 * height, 0.15 * width, 0.6 * height);
+
+                                                                 ctx.beginPath();
+                                                                 ctx.moveTo(0.5 * width, 0.2 * height);
+                                                                 ctx.lineTo(0.5 * width, 0.8 * height);
+                                                                 ctx.lineTo(0.8 * width, 0.5 * height);
+                                                                 ctx.closePath();
+                                                                 ctx.fill();
+                                                             }
+
+                                                         }
+                                                     }
+                                                    MouseArea
+                                                        {
+                                                            anchors.fill: parent
+                                                            hoverEnabled: true
+
+                                                            onClicked:
+                                                            {
+                                                                pause_play = !pause_play
+                                                                pause_recording.contentItem.requestPaint();
+                                                                if(pause_play)
+                                                                {
+                                                                    record_tool_text2="Play Recording"
+                                                                    start_Timer.stop()
+                                                                    VideoStreamer.pause_streaming()
+                                                                    start_Timer2.start()
+                                                                    statusindicator.color="red"
+
+
+                                                                }
+                                                                else if(!pause_play)
+                                                                {
+                                                                    record_tool_text2="Pause Recording"
+                                                                    start_Timer.start()
+                                                                    VideoStreamer.pause_streaming()
+                                                                    start_Timer2.stop()
+                                                                    statusindicator.stopBlinkAnimation()
+                                                                    statusindicator.color="green"
+                                                                }
+                                                            }
+                                                            onPressed:
+                                                                    {
+                                                                        pause_status = !pause_status
+                                                                    }
+
+                                                            onReleased:
+                                                                    {
+                                                                        pause_status = !pause_status
+                                                                    }
+
+                                                            onEntered:
+                                                            {
+                                                                tooltip_set(pause_recording.x+mouseX,pause_recording.y-0.05*root.height,record_tool_text2)
+                                                            }
+
+                                                            onExited:
+                                                            {
+                                                                tooltip_reset()
+                                                            }
+                                                        }
+                                                }
+
+                    Button
+                        {
+                            id: capture_ss
+                            width:0.02*root.width
+                            height:0.02*root.width
+                            //Layout.alignment: Qt.AlignHCenter
+                            visible: true
+                            background: Rectangle
+                            {
+                                anchors.fill:parent
+                                color:"grey"//"#011026"
+                                opacity:0.5
+                                radius:100
+                            }
+                            anchors
+                            {
+                                top:start_stop_recording.bottom
+                                topMargin:0.01*root.width
+                                horizontalCenter:main_rect.horizontalCenter
+                                //bottom:box_5.bottom
+                                //bottomMargin:0.005*parent.width
+                                horizontalCenterOffset:-0.32*main_rect.width
+                            }
+
+                            //layer.enabled: true
+                            /*layer.effect:  Glow {
+                                radius:0.007*parent.width
+                                samples: 21
+                                color:start_status===false?"#00FFFF":neonGreen
+                                //transparentBorder: true
+                            }*/
+
+                            /*contentItem: Text {
+                                text:"Start"
+                                //font.family: "Segoe UI Black"
+                                font.pointSize: Math.min(root.width/70,root.height/60)//0.01*header.width
+                                style: Text.Sunken
+                                //font: export_log.font
+                                //opacity: enabled ? 1.0 : 0.3
+                                color:"White"
+                                horizontalAlignment: Text.AlignHCenter
+                                verticalAlignment: Text.AlignVCenter
+                                //elide: Text.ElideRight
+                            }*/
+                            contentItem: Image {
+                                source: "qrc:/dvr_system/images/screenshot3.png"
+                                anchors.fill: parent
+                            }
+                            MouseArea
+                            {
+                                id:area_10
+                                anchors.fill: parent
+                                hoverEnabled: true
+
+                                onClicked:
+                                {
+                                    capture_map_image()
+                                }
+                                onEntered:
+                                {
+                                    tooltip_set(capture_ss.x+mouseX,capture_ss.y-capture_ss.height,"Capture the\n Frame")
+                                }
+
+                                onExited:
+                                {
+                                    tooltip_reset()
+                                }
+
+                            }
+                        }
+
+                    Button
+                        {
+                            id: video_on_off
+                            width:0.02*root.width
+                            height:0.02*root.width
+                            //Layout.alignment: Qt.AlignHCenter
+                            visible: true
+                            background: Rectangle
+                            {
+                                anchors.fill:parent
+                                color:"grey"//"#011026"
+                                opacity:0.5
+                                radius:100
+                            }
+                            anchors
+                            {
+                                top:start_stop_recording.bottom
+                                topMargin:0.01*root.width
+                                horizontalCenter:main_rect.horizontalCenter
+                                //bottom:box_5.bottom
+                                //bottomMargin:0.005*parent.width
+                                horizontalCenterOffset:+0.32*main_rect.width
+                            }
+
+                            //layer.enabled: true
+                            /*layer.effect:  Glow {
+                                radius:0.007*parent.width
+                                samples: 21
+                                color:start_status===false?"#00FFFF":neonGreen
+                                //transparentBorder: true
+                            }*/
+
+                            /*contentItem: Text {
+                                text:"Start"
+                                //font.family: "Segoe UI Black"
+                                font.pointSize: Math.min(root.width/70,root.height/60)//0.01*header.width
+                                style: Text.Sunken
+                                //font: export_log.font
+                                //opacity: enabled ? 1.0 : 0.3
+                                color:"White"
+                                horizontalAlignment: Text.AlignHCenter
+                                verticalAlignment: Text.AlignVCenter
+                                //elide: Text.ElideRight
+                            }*/
+                            contentItem: Image {
+                                id:area_11
+                                source: "qrc:/dvr_system/images/video_hide.png"
+                                width:0.75*parent.width
+                                height:0.75*parent.width
+                                anchors.centerIn: parent
+                                //clip: true
+                                //smooth: true
+                            }
+                            MouseArea
+                            {
+                                anchors.fill: parent
+                                hoverEnabled: true
+
+                                onClicked:
+                                {
+                                    //capture_map_image()
+                                    if(area_11.source=="qrc:/dvr_system/images/video_show.png")
+                                    {
+                                        area_11.source="qrc:/dvr_system/images/video_hide.png"
+                                        imageRect2.visible=true
+                                    }
+
+                                    else
+                                    {
+                                        area_11.source="qrc:/dvr_system/images/video_show.png"
+                                        imageRect2.visible=false
+                                    }
+                                }
+                                onEntered:
+                                {
+                                    tooltip_set(capture_ss.x+mouseX,capture_ss.y-capture_ss.height,"Capture the\n Frame")
+                                }
+
+                                onExited:
+                                {
+                                    tooltip_reset()
+                                }
+
+                            }
+                        }
+
+                    Button
+                        {
+                            id: mike_on_off
+                            width:0.02*root.width
+                            height:0.02*root.width
+                            //Layout.alignment: Qt.AlignHCenter
+                            visible: true
+
+                            property bool talk:false
+                            focus: true  // Ensure this item can receive keyboard events
+
+                            background: Rectangle
+                            {
+                                anchors.fill:parent
+                                color:mike_on_off.talk?"red":"grey"//"#011026"
+                                opacity:mike_on_off.talk?1.0:0.5
+                                radius:100
+                            }
+                            anchors
+                            {
+                                top:start_stop_recording.bottom
+                                topMargin:0.01*root.width
+                                horizontalCenter:main_rect.horizontalCenter
+                                //bottom:box_5.bottom
+                                //bottomMargin:0.005*parent.width
+                                //horizontalCenterOffset:+0.32*box_5.width
+                            }
+
+                            /*contentItem: Text {
+                                text:"Start"
+                                //font.family: "Segoe UI Black"
+                                font.pointSize: Math.min(root.width/70,root.height/60)//0.01*header.width
+                                style: Text.Sunken
+                                //font: export_log.font
+                                //opacity: enabled ? 1.0 : 0.3
+                                color:"White"
+                                horizontalAlignment: Text.AlignHCenter
+                                verticalAlignment: Text.AlignVCenter
+                                //elide: Text.ElideRight
+                            }*/
+                            contentItem: Image {
+                                id:area_12
+                                source: "qrc:/dvr_system/images/mike_off.png"
+                                width:0.9*parent.width
+                                height:0.9*parent.width
+                                anchors.centerIn: parent
+                            }
+                            MouseArea
+                            {
+                                anchors.fill: parent
+                                hoverEnabled: true
+
+                                onClicked:
+                                {
+
+                                    //capture_map_image()
+                                    if(area_12.source=="qrc:/dvr_system/images/mike_off.png")
+                                    {
+                                        VideoStreamer.push_to_talk(false)
+
+                                        area_12.source="qrc:/dvr_system/images/mike_on.png"
+                                    }
+
+                                    else
+                                    {
+                                    }
+                                }
+                                onEntered:
+                                {
+                                    tooltip_set(mike_on_off.x+mouseX,mike_on_off.y-mike_on_off.height,"Push to Talk")
+                                }
+
+                                onExited:
+                                {
+                                    tooltip_reset()
+                                }
+
+                                onPressed:
+                                {
+                                    /*if(area_12.source=="qrc:/dvr_system/images/mike_on.png")
+                                    {
+                                        if(mike_on_off.talk==false)
+                                        {
+                                            //VideoStreamer.start_script()
+                                            VideoStreamer.push_to_talk(true)
+                                            //mike_on_off.talk=true
+                                        }
+                                    }*/
+                                }
+
+                                onPressAndHold:
+                                {
+                                    if(area_12.source=="qrc:/dvr_system/images/mike_on.png")
+                                    {
+                                        if(mike_on_off.talk==false)
+                                        {
+                                            VideoStreamer.push_to_talk(true)
+                                            mike_on_off.talk=true
+                                        }
+                                    }
+                                }
+
+                                onReleased:
+                                {
+
+                                    if(mike_on_off.talk==true)
+                                    {
+                                        VideoStreamer.push_to_talk(false)
+                                    }
+
+                                    mike_on_off.talk=false
+
+                                }
+
+                                onDoubleClicked:
+                                {
+                                    if(area_12.source=="qrc:/dvr_system/images/mike_on.png")
+                                    {
+                                        mike_on_off.talk=false
+                                        area_12.source="qrc:/dvr_system/images/mike_off.png"
+                                        VideoStreamer.push_to_talk(true)
+
+                                    }
+
+
+                                }
+
+
+                            }
+                        }
+
+                    /*Connections{
+                        target:myLink
+
+                        function onDataUpdated()
+                            {
+                                var data=myLink.get_data()
+                                y10.text=yaw=data[0].toString()+"\u00B0";
+                                //yaw=data[1].toFixed(2)+"\u00B0";
+                                //roll=data[2].toFixed(2)+"\u00B0";
+                                r10.text=press=data[1].toString();
+                                p10.text=depth=data[2].toString();
+                                s10.text=temp=data[3].toString();
+                                battery = data[4] + "%";
+                                  voltage = data[5].toString()+"V"+"("+battery+")" ;
+
+                                y6=data[0].toFixed(2)
+
+                                data_model2=[]
+                                data_model2.push(yaw);
+                                data_model2.push(temp);
+                                data_model2.push(press);
+                                data_model2.push(depth);
+                                //data_model2.push(voltage);
+
+                                //model6.model = data_model2
+
+                                data =[]
+                            }
+                    }*/
+}
+
+
