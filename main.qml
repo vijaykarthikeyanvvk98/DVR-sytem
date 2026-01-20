@@ -953,6 +953,7 @@ Rectangle
     color: "black"
     opacity:0.5
     anchors.left: main_rect.right
+    anchors.leftMargin: 0.005*root.width
     radius:0.005*root.width
     anchors.bottom: imageRect.bottom
     anchors.bottomMargin: 0.005*root.width
@@ -1003,7 +1004,7 @@ Button
         }*/
         contentItem: Image {
             id:area_15
-            source: "qrc:/dvr_system/images/mike_off.png"
+            source: "qrc:/dvr_system/images/subtitle.svg"
             width:0.9*parent.width
             height:0.9*parent.width
             anchors.centerIn: parent

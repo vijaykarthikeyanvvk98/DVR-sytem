@@ -34,6 +34,7 @@ qt_add_qml_module(dvr_system
     RESOURCES images/0%.png images/100%.png images/25%.png images/50%.png images/75%.png images/add.png images/arrow.png images/brake.png images/button.png images/close.jpg images/close_2.png images/close_3.png images/CME-Logo.jpg images/CME-Logo.png images/compass-needle.png images/compass.png images/connect.png images/connected.png images/crossHair.png images/depth.png images/dummy_image_template.jpg images/dummy_template.jpg images/dummy_template3.jpg images/forward.png images/gps_off.png images/gps_on.png images/handbrake.png images/light.png images/location.png images/location_2.png images/location_3.png images/logo2.png images/mike_off.png images/mike_on.png images/open.jpg images/piston.png images/pressure.png images/reset.png images/reverse.png images/rover.png images/screenshot.png images/screenshot2.png images/screenshot3.png images/settings.png images/settings_2.png images/speed.png images/tare.png images/temperature.png images/video_hide.png images/video_show.png images/vikra.png images/vikra_2.jpeg images/vikra_2.png
     SOURCES videostreamer.h videostreamer.cpp
     SOURCES opencvimageprovider.h opencvimageprovider.cpp
+    RESOURCES images/subtitle.svg
 )
 target_link_libraries(dvr_system
     PRIVATE
