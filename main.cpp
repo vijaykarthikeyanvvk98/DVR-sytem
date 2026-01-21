@@ -9,7 +9,7 @@
 using namespace cv;
 int main(int argc, char *argv[])
 {
-    //qDebug()<<cv::getBuildInformation();
+    //std::cout << cv::getBuildInformation() << std::endl;
     QApplication a(argc, argv);
     qRegisterMetaType<cv::Mat>("cv::Mat");
     //std::cout << cv::getBuildInformation() << std::endl;
@@ -40,9 +40,11 @@ int main(int argc, char *argv[])
         return -1;
     QObject *rootObject = engine.rootObjects().first();
     QWindow *window = qobject_cast<QWindow *>(rootObject);
+    const QIcon icon = QIcon(":/dvr_system/images/vikra_2.jpeg");
 
     if (window) {
         window->setTitle("DVR SYSTEM");
+        window->setIcon(icon);
 
         window->showMaximized();
         window->setMinimumSize(QSize(670, 470));

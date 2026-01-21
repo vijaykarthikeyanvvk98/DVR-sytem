@@ -124,7 +124,7 @@ ApplicationWindow {
             //VideoStreamer.openVideoCamera(0);
              VideoStreamer.openVideoCamera();
 
-            //VideoStreamer.openVideoCamera2("rtsp://admin:vikra@123@192.168.56.50.554/cam/realmonitor?channel=1&subtype=0");
+            VideoStreamer.openVideoCamera2("rtsp://admin:Vikra@123@192.168.56.50.554/cam/realmonitor?channel=1&subtype=0");
             //VideoStreamer.openVideoCamera2(1);
             //VideoStreamer.qImageToCvMat();
             //VideoStreamer.openVideoCamera("tcpclientsrc host=192.168.56.1 port=5000 ! gdpdepay ! rtph264depay ! h264parse ! avdec_h264 ! videoconvert ! autovideosink");

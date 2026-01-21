@@ -527,13 +527,8 @@ void VideoStreamer::createPipeline(const QString path)
 {
     pipeline = gst_pipeline_new("pipeline");
 
-    appsrc = gst_element_factory_make("appsrc", "video_source");
-    g_object_set(G_OBJECT(appsrc), "format", GST_FORMAT_TIME, NULL, nullptr);
-
     // Audio sources
     GstElement *audioSource = gst_element_factory_make("autoaudiosrc", "audio_source");
-    GstElement *udpAudioSource = gst_element_factory_make("udpsrc", "udp_audio_source");
-    g_object_set(udpAudioSource, "port", 8890, NULL, nullptr);
 
     GstElement *audioDepay = gst_element_factory_make("rtpopusdepay", "audio_depay");
     GstElement *audioDec = gst_element_factory_make("opusdec", "audio_dec");
@@ -557,9 +552,6 @@ void VideoStreamer::createPipeline(const QString path)
     GstElement *audioQueue2 = gst_element_factory_make("queue", "audio_queue2");
     GstElement *audioQueue3 = gst_element_factory_make("queue", "audio_queue3");
     GstElement *audioQueue4 = gst_element_factory_make("queue", "audio_queue4");
-    GstElement *audioQueue5 = gst_element_factory_make("queue", "audio_queue5");
-    GstElement *audioQueue6 = gst_element_factory_make("queue", "audio_queue6");
-    GstElement *audioQueue7 = gst_element_factory_make("queue", "audio_queue7");
 
 
     GstElement *muxer = gst_element_factory_make("mp4mux", "muxer");
@@ -613,7 +605,6 @@ void VideoStreamer::createPipeline(const QString path)
                                      NULL), NULL);
 
     // Create and set the caps for UDP audio source
-    GstElement *audioCapsFilter = gst_element_factory_make("capsfilter", "audio_capsfilter");
     GstCaps *audioCaps = gst_caps_new_simple(
         /*"application/x-rtp",
         "media", G_TYPE_STRING, "audio",
@@ -628,12 +619,9 @@ void VideoStreamer::createPipeline(const QString path)
         "channels", G_TYPE_INT, 1,
         "rate", G_TYPE_INT, 44100,
         nullptr);
-    g_object_set(udpAudioSource, "caps", audioCaps, NULL, nullptr);
     //g_object_set(udpAudioSource, "caps", audioCaps, NULL, nullptr);
     //g_object_set(audioCapsFilter, "caps", audioCaps, NULL);
     gst_caps_unref(audioCaps);
-    g_object_set(audioQueue5, "max-size-time", 5000000000, NULL);  // 5 seconds buffer
-    g_object_set(audioQueue7, "max-size-time", 5000000000, NULL);  // 5 seconds buffer
 
     g_object_set(audioSource, "sync", TRUE, NULL);
 
@@ -645,7 +633,6 @@ void VideoStreamer::createPipeline(const QString path)
 
     // Adding queue before encoder
     g_object_set(audioQueue3, "max-size-time", 5000000000, NULL);  // 5 seconds buffer
-    g_object_set(audioQueue5, "leaky", 2, NULL);  // Drop old buffers if queue is full
     /*g_object_set(videoEnc,
                  "bitrate", 4500,              // Set an appropriate bitrate
                  "key-int-max", 30,            // Keyframe interval
@@ -660,28 +647,12 @@ void VideoStreamer::createPipeline(const QString path)
                                      NULL), NULL);
     gst_bin_add_many(GST_BIN(pipeline),
                      appsrc, videoConvert, videoQueue, videoEnc,
-                     audioSource, udpAudioSource,audioCapsFilter,/* audioDepay, audioDec,*/ audioConvert2, audioResample2, audioMixer,
-                     audioConvert, audioResample, resample2, convert2, audioEnc, audioQueue, audioQueue2, audioQueue3, audioQueue4,audioQueue5,audioQueue6,audioQueue7,
+                     audioSource,/* audioDepay, audioDec,*/ audioConvert2, audioResample2, audioMixer,
+                     audioConvert, audioResample, resample2, convert2, audioEnc, audioQueue, audioQueue2, audioQueue3, audioQueue4,
                      muxer, sink,i420CapsFilter, NULL, nullptr);
 
     if (!gst_element_link_many(appsrc, videoConvert, i420CapsFilter, videoQueue, videoEnc, muxer, NULL, nullptr)) {
         qCritical() << "Failed to link video elements";
-        gst_object_unref(pipeline);
-        pipeline = nullptr;
-        return;
-    }
-
-    // Link UDP audio source to the caps filter, depay, and decode
-    if (!gst_element_link_many(udpAudioSource,audioQueue5,/*audioCapsFilter,*/ convert2,resample2, audioQueue, audioMixer, NULL)) {
-        qCritical() << "Failed to link UDP audio elements";
-        gst_object_unref(pipeline);
-        pipeline = nullptr;
-        return;
-    }
-
-    // Link local audio source to mixer
-    if (!gst_element_link_many(audioSource,audioQueue7,audioConvert2 ,audioResample2,audioQueue2, audioMixer, NULL)) {
-        qCritical() << "Failed to link local audio elements";
         gst_object_unref(pipeline);
         pipeline = nullptr;
         return;
@@ -755,20 +726,15 @@ void VideoStreamer::sendEOS()
         g_assert(video_src);
         GstElement *audio_src = gst_bin_get_by_name(GST_BIN(pipeline), "audio_source");
         g_assert(audio_src);
-        GstElement *audio_src2 = gst_bin_get_by_name(GST_BIN(pipeline), "udp_audio_source");
-        g_assert(audio_src2);
         gst_element_send_event(video_src, gst_event_new_eos());
         gst_element_send_event(audio_src, gst_event_new_eos());
-        gst_element_send_event(audio_src2, gst_event_new_eos());
 
         //qDebug() << "EOS ended";
         //qDebug() << "EOS events sent and sources unreferenced";
         gst_object_unref(video_src);
         gst_object_unref(audio_src);
-        gst_object_unref(audio_src2);
         video_src=nullptr;
         audio_src=nullptr;
-        audio_src2=nullptr;
         QTimer::singleShot(1000, [this]() {
             //gst_element_set_state(pipeline, GST_STATE_PAUSED);
             //gst_element_set_state(pipeline, GST_STATE_READY);
@@ -927,6 +893,7 @@ void VideoStreamer::pushFrame(Mat push_frame)
 
 void VideoStreamer::reset_pipeline()
 {
+    //qDebug()<<"recording";
     currentDateTime = QDateTime::currentDateTime();
     formattedTime = currentDateTime.toString("dd.MM.yyyy-hh.mm.ss");
     outputPath = logFileDir+"/"+ QString(formattedTime) + "-"+dst_file;
@@ -1144,7 +1111,7 @@ void VideoStreamer::openVideoCamera2(QString path)
         cap2.release();
         tUpdate.stop();
 
-        cap.release();
+        cap2.release();
         worker2->deleteLater();
         threadStreamer2->quit();
         threadStreamer2->wait();
@@ -1155,7 +1122,7 @@ void VideoStreamer::openVideoCamera2(QString path)
 
     //cap2.open(path.toStdString());
     //cap2.open(1);
-    cap2.open("rtsp://admin:vikra@123@192.168.56.50:554/cam/realmonitor?channel=1&subtype=0");
+    cap2.open("rtsp://admin:Vikra@123@192.168.56.50:554/video/live?channel=1&subtype=0", cv::CAP_FFMPEG);
     //"rtsp://admin:vikra@123@192.168.56.51:554/cam/realmonitor?channel=1&subtype=0"
     //cap2.open("rtspsrc  location=rtsp://192.168.56.50:554/cam/realmonitor?channel=1&subtype=0 user-id=admin user-pw=vikra@123 latency=0 ! decodebin !  videoconvert ! appsink udpsrc port=5202 buffer-size=524288 ! application/x-rtp,media=audio,clock-rate=48000,encoding-name=OPUS,payload=96 ! rtpopusdepay ! opusdec ! audioconvert ! autoaudiosink ",cv::CAP_GSTREAMER);
 
@@ -1256,7 +1223,7 @@ void VideoStreamer::openVideoCamera2(QString path)
     worker2->moveToThread(threadStreamer2);
     QObject::connect(threadStreamer2, SIGNAL(started()), worker2, SLOT(streamerThreadSlot2()));
     QObject::connect(worker2, &VideoStreamer::emitThreadImage2, this, &VideoStreamer::catchFrame2);
-    //QObject::connect(worker2, &VideoStreamer::emitThreadImage2, this, &VideoStreamer::pushFrame);
+    QObject::connect(worker2, &VideoStreamer::emitThreadImage2, this, &VideoStreamer::pushFrame);
 
     //qDebug() << cap.get(cv::CAP_PROP_FPS);
     threadStreamer2->start();
@@ -1372,9 +1339,6 @@ void VideoStreamer::streamerThreadSlot()
 void VideoStreamer::streamerThreadSlot2()
 {
 
-    //
-
-
     cv::Mat tempFrame,enhanced,frame2;
     ;
     static int frame_count = 0;
@@ -1414,8 +1378,8 @@ void VideoStreamer::streamerThreadSlot2()
         if (tempFrame.data) {
             //qDebug() << "Frame";
             //enhanced =  color_correction.GWA_Lab(tempFrame);
-            tempFrame.convertTo(enhanced, -1, bright, amount); //decrease the brightness
-            enhanced = write_frame(enhanced);
+            //tempFrame.convertTo(enhanced, -1, bright, amount); //decrease the brightness
+            //enhanced = write_frame(enhanced);
             //histogram_equalization(tempFrame);
             normal_frame2 = frame2.clone();
 
@@ -1456,7 +1420,7 @@ void VideoStreamer::streamerThreadSlot2()
         writing_delay2=delay;
         //if(recording_status)
         //std::this_thread::sleep_for(std::chrono::milliseconds(delay));
-        emit emitThreadImage2(enhanced);
+        emit emitThreadImage2(tempFrame);
 
         //video.write(sharpened);
         /*if (recording_status == true && received_video.isOpened()) {
