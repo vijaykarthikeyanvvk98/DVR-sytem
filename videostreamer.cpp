@@ -97,6 +97,7 @@ GstElement *volume=nullptr;
 VideoStreamer::VideoStreamer()
 {
     //start_script();
+    //qDebug()<<recording_status;
     gst_init(nullptr, nullptr);
     // Create the GStreamer elements
     /*GstElement *src = gst_element_factory_make("udpsrc", "src");
@@ -188,7 +189,7 @@ VideoStreamer::VideoStreamer()
     gst_bus_add_signal_watch(bus);
 
     g_signal_connect(bus, "message", G_CALLBACK(on_message), nullptr);*/
-    pipeline2 = gst_pipeline_new("audio-receive-pipeline");
+    /*pipeline2 = gst_pipeline_new("audio-receive-pipeline");
     GstElement *udpsrc = gst_element_factory_make("udpsrc", "source");
     GstElement *audioconvert = gst_element_factory_make("audioconvert", "convert");
     GstElement *audioresample = gst_element_factory_make("audioresample", "resample");
@@ -227,7 +228,7 @@ VideoStreamer::VideoStreamer()
         g_printerr("Pipeline could not be started.\n");
         gst_object_unref(pipeline2);
         return ;
-    }
+    }*/
     //gst_element_set_state(pipeline, GST_STATE_NULL);
     //gst_object_unref(pipeline);
     // Wait until error or EOS
@@ -355,7 +356,7 @@ cv::Mat VideoStreamer::write_frame(cv::Mat dummy_frame)
     newFrame = dummy_frame.clone();
     cx = (newFrame.cols - 70) / 2;
     cx2 = (newFrame.cols - 150) / 2;
-    FPS = "FPS: " + QString::number(writing_fps, 'f', 1);
+    /*FPS = "FPS: " + QString::number(writing_fps, 'f', 1);
 
     //AHRS
 
@@ -400,7 +401,7 @@ cv::Mat VideoStreamer::write_frame(cv::Mat dummy_frame)
                 cv::QT_FONT_NORMAL,
                 0.5,
                 cv::Scalar(0, 255, 0), // BGR for green
-                1,cv::LINE_AA);
+                1,cv::LINE_AA);*/
     /*cv::putText(dummy_frame,
                 BATTERY.toStdString(),
                 Point(470, 20),
@@ -408,7 +409,6 @@ cv::Mat VideoStreamer::write_frame(cv::Mat dummy_frame)
                 0.5,
                 cv::Scalar(0, 255, 0), // BGR for green
                 1,cv::LINE_AA);*/
-    // Resize the overlay frame to the desired size
     if(!frame.empty())
     {
         cv::resize(frame, resized_overlay_frame, cv::Size(150, 100)); // Adjust the size as needed
@@ -481,6 +481,7 @@ void VideoStreamer::streamVideo2()
 void VideoStreamer::catchFrame2(Mat emittedFrame)
 {
     received_frame = emittedFrame;
+    //qDebug()<<recording_status;
     if(recording_status)
     {
         pushFrame(received_frame);
@@ -527,152 +528,133 @@ void VideoStreamer::createPipeline(const QString path)
 {
     pipeline = gst_pipeline_new("pipeline");
 
-    // Audio sources
+    /* ================= VIDEO SOURCE ================= */
+
+    appsrc = gst_element_factory_make("appsrc", "video_source");
+    if (!appsrc) {
+        qCritical() << "Failed to create appsrc";
+        return;
+    }
+
+    g_object_set(G_OBJECT(appsrc),
+                 "format", GST_FORMAT_TIME,
+                 "is-live", TRUE,
+                 "do-timestamp", TRUE,
+                 NULL);
+
+    /* ================= AUDIO SOURCE ================= */
+
     GstElement *audioSource = gst_element_factory_make("autoaudiosrc", "audio_source");
 
-    GstElement *audioDepay = gst_element_factory_make("rtpopusdepay", "audio_depay");
-    GstElement *audioDec = gst_element_factory_make("opusdec", "audio_dec");
+    /* ================= AUDIO PROCESS ================= */
 
-    // Audio processing elements
-    GstElement *audioMixer = gst_element_factory_make("audiomixer", "audio_mixer");
     GstElement *audioConvert = gst_element_factory_make("audioconvert", "audio_convert");
     GstElement *audioResample = gst_element_factory_make("audioresample", "audio_resample");
-    //GstElement *audioEnc = gst_element_factory_make("avenc_ac3_fixed", "audio_enc");
     GstElement *audioEnc = gst_element_factory_make("avenc_aac", "audio_enc");
-    GstElement *audioConvert2 = gst_element_factory_make("audioconvert", "audio_convert2");
-    GstElement *audioResample2 = gst_element_factory_make("audioresample", "audio_resample2");
 
-    // Video processing elements
-    GstElement *videoConvert = gst_element_factory_make("videoconvert", "video_convert");
-    GstElement *videoEnc = gst_element_factory_make("x264enc", "video_enc");
-    GstElement *videoQueue = gst_element_factory_make("queue", "video_queue");
-    GstElement *audioQueue = gst_element_factory_make("queue", "audio_queue");
-    //g_object_set(audioQueue, "max-size-time", 5000000000, NULL);  // 5 seconds buffer
-
-    GstElement *audioQueue2 = gst_element_factory_make("queue", "audio_queue2");
     GstElement *audioQueue3 = gst_element_factory_make("queue", "audio_queue3");
     GstElement *audioQueue4 = gst_element_factory_make("queue", "audio_queue4");
 
+    /* ================= VIDEO PROCESS ================= */
+
+    GstElement *videoConvert = gst_element_factory_make("videoconvert", "video_convert");
+    GstElement *i420CapsFilter = gst_element_factory_make("capsfilter", "i420_capsfilter");
+    GstElement *videoQueue = gst_element_factory_make("queue", "video_queue");
+    GstElement *videoEnc = gst_element_factory_make("x264enc", "video_enc");
+
+    /* ================= MUX & SINK ================= */
 
     GstElement *muxer = gst_element_factory_make("mp4mux", "muxer");
     GstElement *sink = gst_element_factory_make("filesink", "file_sink");
 
-    GstElement *amplify = gst_element_factory_make("audioamplify", "amplify");
-    GstElement *limit = gst_element_factory_make("audiocheblimit", "audiocheblimit");
-    GstElement *dynamic = gst_element_factory_make("audiodynamic", "dynamic");
-    GstElement *level = gst_element_factory_make("level", "level");
-    GstElement *resample2 = gst_element_factory_make("audioresample", "resample2");
-    GstElement *convert2 = gst_element_factory_make("audioconvert", "convert2");
-    GstElement *volume = gst_element_factory_make("volume", "volume");
-    GstElement *filter = gst_element_factory_make("audiowsinclimit", "audiowsinclimit");
-    GstElement *equalizer = gst_element_factory_make("equalizer-10bands", "equalizer");
-
-    //g_object_set(volume, "volume", 4.0, NULL);
-    //g_object_set(volume, "mute", false, NULL);
-
-    // Set properties
-    g_object_set(volume, "volume", 10.0, NULL);
-    //g_object_set(filter, "window", 1, NULL);
-    g_object_set(filter, "cutoff", 400.0, NULL, nullptr);
-    //g_object_set(filter, "length", 101, NULL, nullptr);
-    g_object_set(filter, "mode", 0, NULL, nullptr);
     g_object_set(sink, "location", path.toStdString().c_str(), NULL);
+    g_object_set(muxer, "faststart", TRUE, NULL);
 
-    g_object_set(equalizer,
-                 "band0", -20.0,  // 31.25 Hz
-                 "band1", -20.0,  // 62.5 Hz
-                 "band2", -20.0,   // 125 Hz
-                 "band3", -20.0,   // 250 Hz
-                 "band4", -20.0,   // 500 Hz
-                 "band5", -20.0,   // 1 kHz
-                 "band6", 0.0,  // 2 kHz
-                 "band7", 5.0,  // 4 kHz
-                 "band8", 0.0,   // 8 kHz
-                 "band9", 5.0,   // 16 kHz
+    /* ================= CAPS ================= */
+
+    GstCaps *videoCaps = gst_caps_new_simple(
+        "video/x-raw",
+        "format", G_TYPE_STRING, "BGR",
+        "width", G_TYPE_INT, 1080,
+        "height", G_TYPE_INT, 720,
+        "framerate", GST_TYPE_FRACTION, 25, 1,
+        NULL
+        );
+    g_object_set(G_OBJECT(appsrc), "caps", videoCaps, NULL);
+    gst_caps_unref(videoCaps);
+
+    GstCaps *i420Caps = gst_caps_new_simple(
+        "video/x-raw",
+        "format", G_TYPE_STRING, "I420",
+        NULL
+        );
+    g_object_set(G_OBJECT(i420CapsFilter), "caps", i420Caps, NULL);
+    gst_caps_unref(i420Caps);
+
+    /* ================= ENCODER SETTINGS ================= */
+
+    g_object_set(videoEnc,
+                 "bitrate", 4500,
+                 "key-int-max", 25,
+                 "tune", 4,   // zerolatency
                  NULL);
-    // Set properties for audio encoder
-    //g_object_set(audioEnc, "bufsize", 256, NULL, nullptr);
-    g_object_set(audioEnc, "bitrate", 44100, NULL);
-    g_object_set(amplify, "amplification", 7.0, NULL, nullptr);
-    //g_object_set(limit, "mode", 0, "type", 1, "cutoff", 700.0, "ripple", 0.0, NULL);
-    // Set the caps for appsrc (video source)
-    g_object_set(G_OBJECT(appsrc), "caps",
-                 gst_caps_new_simple("video/x-raw",
-                                     "format", G_TYPE_STRING, "BGR",
-                                     "width", G_TYPE_INT, 1080,
-                                     "height", G_TYPE_INT, 720,
-                                     "framerate", GST_TYPE_FRACTION, 25, 1,
-                                     NULL), NULL);
 
-    // Create and set the caps for UDP audio source
-    GstCaps *audioCaps = gst_caps_new_simple(
-        /*"application/x-rtp",
-        "media", G_TYPE_STRING, "audio",
-        "clock-rate", G_TYPE_INT, 48000,
-        //"encoding-name", G_TYPE_STRING, "OPUS",
-        //"payload", G_TYPE_INT, 96,
-        NULL*/
-        "audio/x-raw",
-        "format", G_TYPE_STRING, "S16LE",
-        //"media", G_TYPE_STRING, "audio",
-        //"clock-rate", G_TYPE_INT, 44800,
-        "channels", G_TYPE_INT, 1,
-        "rate", G_TYPE_INT, 44100,
-        nullptr);
-    //g_object_set(udpAudioSource, "caps", audioCaps, NULL, nullptr);
-    //g_object_set(audioCapsFilter, "caps", audioCaps, NULL);
-    gst_caps_unref(audioCaps);
+    g_object_set(audioEnc, "bitrate", 128000, NULL);
 
-    g_object_set(audioSource, "sync", TRUE, NULL);
+    g_object_set(audioQueue3, "max-size-time", 5000000000, NULL);
 
-    g_object_set(audioMixer, "latency", 100000000, NULL);  // 100 ms latency
+    /* ================= ADD TO PIPELINE ================= */
 
-    // Ensure both sources are resampled to the same rate
-    g_object_set(resample2, "quality", 10, NULL);  // High quality resampling
-    g_object_set(audioResample2, "quality", 10, NULL);  // High quality resampling
-
-    // Adding queue before encoder
-    g_object_set(audioQueue3, "max-size-time", 5000000000, NULL);  // 5 seconds buffer
-    /*g_object_set(videoEnc,
-                 "bitrate", 4500,              // Set an appropriate bitrate
-                 "key-int-max", 30,            // Keyframe interval
-                 "tune", 4,                    // For "zerolatency" tune
-                 //"speed-preset", 1,            // Use a faster encoding preset
-                 NULL);*/
-    // Create an I420 caps filter after videoconvert
-    GstElement *i420CapsFilter = gst_element_factory_make("capsfilter", "i420_capsfilter");
-    g_object_set(G_OBJECT(i420CapsFilter), "caps",
-                 gst_caps_new_simple("video/x-raw",
-                                     "format", G_TYPE_STRING, "I420",
-                                     NULL), NULL);
     gst_bin_add_many(GST_BIN(pipeline),
-                     appsrc, videoConvert, videoQueue, videoEnc,
-                     audioSource,/* audioDepay, audioDec,*/ audioConvert2, audioResample2, audioMixer,
-                     audioConvert, audioResample, resample2, convert2, audioEnc, audioQueue, audioQueue2, audioQueue3, audioQueue4,
-                     muxer, sink,i420CapsFilter, NULL, nullptr);
+                     appsrc,
+                     videoConvert,
+                     i420CapsFilter,
+                     videoQueue,
+                     videoEnc,
 
-    if (!gst_element_link_many(appsrc, videoConvert, i420CapsFilter, videoQueue, videoEnc, muxer, NULL, nullptr)) {
-        qCritical() << "Failed to link video elements";
+                     audioSource,
+                     audioConvert,
+                     audioResample,
+                     audioQueue3,
+                     audioEnc,
+                     audioQueue4,
+
+                     muxer,
+                     sink,
+                     NULL);
+
+    /* ================= LINK VIDEO ================= */
+
+    if (!gst_element_link_many(appsrc,
+                               videoConvert,
+                               i420CapsFilter,
+                               videoQueue,
+                               videoEnc,
+                               muxer,
+                               NULL)) {
+        qCritical() << "Failed to link video pipeline";
         gst_object_unref(pipeline);
         pipeline = nullptr;
         return;
     }
 
-    // Link the mixer to the rest of the audio pipeline
-    if (!gst_element_link_many(audioMixer,audioQueue3,/*audioConvert, audioResample,audioQueue,*/ audioEnc,audioQueue4, muxer, NULL)) {
-        qCritical() << "Failed to link audio elements";
+    /* ================= LINK AUDIO ================= */
+
+    if (!gst_element_link_many(audioSource,
+                               audioConvert,
+                               audioResample,
+                               audioQueue3,
+                               audioEnc,
+                               audioQueue4,
+                               muxer,
+                               NULL)) {
+        qCritical() << "Failed to link audio pipeline";
         gst_object_unref(pipeline);
         pipeline = nullptr;
         return;
     }
 
-    if (!gst_element_link(muxer, sink)) {
-        qCritical() << "Failed to link muxer and sink";
-        gst_object_unref(pipeline);
-        pipeline = nullptr;
-        return;
-    }
-
+    /* ================= BUS ================= */
 
     GstBus *bus = gst_pipeline_get_bus(GST_PIPELINE(pipeline));
     gst_bus_add_watch(bus, bus_call, this);
@@ -705,6 +687,7 @@ void VideoStreamer::startPipeline()
 
     }
 
+    //qDebug()<<"This one";
     recording_status = true;
     exit_status2=false;
     recordingStartTime = QDateTime::currentDateTime();
@@ -760,7 +743,7 @@ void VideoStreamer::sendEOS()
 
 void  VideoStreamer::qImageToCvMat()
 {
-    QString imagePath(":/resources/images/vikra_2.png");
+    QString imagePath(":/dvr_system/images/vikra_2.png");
     QImage qImage;
     if (!qImage.load(imagePath)) {
         qDebug() << "Failed to load image from resources";
@@ -1377,9 +1360,10 @@ void VideoStreamer::streamerThreadSlot2()
         }
         if (tempFrame.data) {
             //qDebug() << "Frame";
+            //qDebug()<<recording_status;
             //enhanced =  color_correction.GWA_Lab(tempFrame);
-            //tempFrame.convertTo(enhanced, -1, bright, amount); //decrease the brightness
-            //enhanced = write_frame(enhanced);
+            tempFrame.convertTo(enhanced, -1, bright, amount); //decrease the brightness
+            enhanced = write_frame(enhanced);
             //histogram_equalization(tempFrame);
             normal_frame2 = frame2.clone();
 

@@ -126,7 +126,7 @@ ApplicationWindow {
 
             VideoStreamer.openVideoCamera2("rtsp://admin:Vikra@123@192.168.56.50.554/cam/realmonitor?channel=1&subtype=0");
             //VideoStreamer.openVideoCamera2(1);
-            //VideoStreamer.qImageToCvMat();
+            VideoStreamer.qImageToCvMat();
             //VideoStreamer.openVideoCamera("tcpclientsrc host=192.168.56.1 port=5000 ! gdpdepay ! rtph264depay ! h264parse ! avdec_h264 ! videoconvert ! autovideosink");
             opencvImage.visible=true;
             //timerText.text="00"+":"+"00"+":"+"00";
@@ -1594,7 +1594,7 @@ RowLayout
                                     {
                                         if(mike_on_off.talk==false)
                                         {
-                                            VideoStreamer.start_script()
+                                            //VideoStreamer.start_script()
                                             VideoStreamer.push_to_talk(true)
                                             mike_on_off.talk=true
                                         }
