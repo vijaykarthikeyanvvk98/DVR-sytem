@@ -1317,7 +1317,7 @@ RowLayout
                                                                     record_tool_text2="Play Recording"
                                                                     start_Timer.stop()
                                                                     VideoStreamer.pause_streaming()
-                                                                    start_Timer2.start()
+                                                                    //start_Timer2.start()
                                                                     statusindicator.color="red"
 
 
@@ -1327,7 +1327,7 @@ RowLayout
                                                                     record_tool_text2="Pause Recording"
                                                                     start_Timer.start()
                                                                     VideoStreamer.pause_streaming()
-                                                                    start_Timer2.stop()
+                                                                    //start_Timer2.stop()
                                                                     statusindicator.stopBlinkAnimation()
                                                                     statusindicator.color="green"
                                                                 }

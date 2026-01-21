@@ -618,7 +618,6 @@ void VideoStreamer::createPipeline(const QString path)
                      audioQueue3,
                      audioEnc,
                      audioQueue4,
-
                      muxer,
                      sink,
                      NULL);
@@ -663,6 +662,7 @@ void VideoStreamer::createPipeline(const QString path)
 
 void VideoStreamer::startPipeline()
 {
+    //qDebug()<<recording_status;
     /*currentDateTime = QDateTime::currentDateTime();
     formattedTime = currentDateTime.toString("dd.MM.yyyy-hh.mm.ss");
     //qDebug()<<formattedTime;
@@ -1206,7 +1206,7 @@ void VideoStreamer::openVideoCamera2(QString path)
     worker2->moveToThread(threadStreamer2);
     QObject::connect(threadStreamer2, SIGNAL(started()), worker2, SLOT(streamerThreadSlot2()));
     QObject::connect(worker2, &VideoStreamer::emitThreadImage2, this, &VideoStreamer::catchFrame2);
-    QObject::connect(worker2, &VideoStreamer::emitThreadImage2, this, &VideoStreamer::pushFrame);
+    //QObject::connect(worker2, &VideoStreamer::emitThreadImage2, this, &VideoStreamer::pushFrame);
 
     //qDebug() << cap.get(cv::CAP_PROP_FPS);
     threadStreamer2->start();
