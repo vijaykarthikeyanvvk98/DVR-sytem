@@ -14,6 +14,7 @@ int main(int argc, char *argv[])
     qRegisterMetaType<cv::Mat>("cv::Mat");
     //std::cout << cv::getBuildInformation() << std::endl;
     VideoStreamer videoStreamer;
+    videoStreamer.create_directory();
 
     OpencvImageProvider *liveImageProvider(new OpencvImageProvider);
     QQmlApplicationEngine engine;
@@ -35,7 +36,8 @@ int main(int argc, char *argv[])
                      liveImageProvider,
                      &OpencvImageProvider::updateImage2);
     engine.loadFromModule("dvr_system", "Main");
-
+    // Tell Qt to look for modules in the local 'qml' folder we just copied
+    //engine.addImportPath(QCoreApplication::applicationDirPath() + "/qml");
     if (engine.rootObjects().isEmpty())
         return -1;
     QObject *rootObject = engine.rootObjects().first();

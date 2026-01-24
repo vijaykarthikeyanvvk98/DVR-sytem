@@ -14,11 +14,13 @@
 #include <opencv2/highgui.hpp>
 #include <gst/gst.h>
 #include <gst/app/gstappsrc.h> // Include this header for appsrc
+#include <qdir.h>
 
 //#include <QtMultimedia>
 //#include <QtCore>
 using namespace cv;
-
+static bool status_changed = true;
+static int calculated_difference = 0;
 class VideoStreamer : public QObject
 {
     Q_OBJECT
@@ -73,6 +75,19 @@ public slots:
     void start_script();
     void stop_script();
     void push_to_talk(bool);
+    void opening_thread();
+    void close_open_thread();
+    void export_video();
+    void open_image(QString);
+    void set_depth_enable(bool);
+    void set_count_depth(int);
+    void subtitle_streaming();
+    void increment_counter();
+    void set_time(QString);
+    void write_check(double);
+    void set_name(QString);
+    void change_cam(int );
+    void is_subttitle(bool);
 
 private:
     Mat simg;
@@ -111,7 +126,24 @@ private:
     QTimer check;
 
     Rect dstRC;
-
+    //int FPS;
+    double yaw;
+    int width = 640;  // Replace with your desired width
+    int height = 480; // Replace with your desired height
+    //QString FPS;
+    QString from = "", to = "", selected_time = "";
+    int framer_rate = 0;
+    int pitch_spacing = 0;
+    double angle_rad =0.0;
+    cv::Point textPos;
+    double externalAngle = 0.0;  // Starting angle
+    double angleStep = 10;      // Increment step for smooth rotation
+    double externalAngle2 = 0.0;  // Starting angle
+    double angleStep2 = 1;      // Increment step for smooth rotation
+    bool depth_set_enable=true;
+    QFile subtitleFile;
+    QTextStream out;
+    QVector<QString> dep_arr;
     //QAudioRecorder *AudioRecorder;
     //QAudioProbe *AudioProbe;
 public:
@@ -128,7 +160,11 @@ signals:
     void writing_success();
     void stop();
     void recording_stop();
-
+    void interrupt_request();
+    void open_finished();
+    void depth_enabled();
+    void depth_resetted();
+    void write_finished();
 };
 
 #endif // VIDEOSTREAMER_H

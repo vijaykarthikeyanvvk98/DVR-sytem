@@ -115,6 +115,7 @@ ApplicationWindow {
     property bool online_2: false
 
 
+    property bool is_overlay: false
     /*Image {
         id: photoPreview
     }*/
@@ -124,7 +125,7 @@ ApplicationWindow {
             //VideoStreamer.openVideoCamera(0);
              VideoStreamer.openVideoCamera();
 
-            VideoStreamer.openVideoCamera2("rtsp://admin:Vikra@123@192.168.56.50.554/cam/realmonitor?channel=1&subtype=0");
+            VideoStreamer.openVideoCamera2("rtsp://admin:Vikra@123@192.168.2.3:554/video/live?channel=1&subtype=0");
             //VideoStreamer.openVideoCamera2(1);
             VideoStreamer.qImageToCvMat();
             //VideoStreamer.openVideoCamera("tcpclientsrc host=192.168.56.1 port=5000 ! gdpdepay ! rtph264depay ! h264parse ! avdec_h264 ! videoconvert ! autovideosink");
@@ -168,16 +169,18 @@ ApplicationWindow {
 
             function onRecording_stop()
             {
-                //template_text2.text="Alert!!!"
-                //template_content2.text="Video has been saved successfully!!!"
-                //message_template2.open()
+                clear_status()
+                template_text2.text="Alert!!!"
+                template_content2.text="Video has been saved successfully!!!"
+                message_template2.open()
+
             }
         }
 
         Item {
             focus: true
         Keys.onPressed: {
-           /* if (event.key === Qt.Key_Tab) {
+            if (event.key === Qt.Key_Tab) {
                 //button_Pressed =!button_Pressed
                 console.log("Button Pressed");
                          if(button_Pressed)
@@ -192,7 +195,7 @@ ApplicationWindow {
                             button_Pressed=true;
                              VideoStreamer.pushback(false)
                          }
-                      }*/
+                      }
         }
 
         Keys.onReleased:   {
@@ -295,7 +298,7 @@ ApplicationWindow {
 
         }
 
-        /*Dialog
+        Dialog
             {
                 id:message_template
                 //standardButtons: StandardButton.Ok|StandardButton.Cancel
@@ -311,8 +314,8 @@ ApplicationWindow {
                                 font.bold: true
                                 font.pointSize: 0.01*root.width
                                 style: Text.Sunken
-                                anchors.top:parent.top
-                                anchors.topMargin:0.01*parent.width
+                                //anchors.top:parent.top
+                                //anchors.topMargin:0.01*parent.width
                                 anchors.left:parent.left
                                 anchors.leftMargin:0.05*parent.width
                             }
@@ -377,7 +380,7 @@ ApplicationWindow {
                             //transparentBorder: true
                         }*/
 
-                        /*contentItem: Text {
+                        contentItem: Text {
                             id:response_button2
                             text:"Close"
                             font.pixelSize:  Math.min(root.width/90,root.height/70)
@@ -456,7 +459,7 @@ ApplicationWindow {
                 {
                     message_template.close()
                 }
-            }*/
+            }
 
         function connect_stats(string)
         {
@@ -489,7 +492,7 @@ ApplicationWindow {
 
 
 
-        /*Dialog
+        Dialog
             {
                 id:message_template2
                 //standardButtons: StandardButton.Ok|StandardButton.Cancel
@@ -505,8 +508,8 @@ ApplicationWindow {
                                 font.bold: true
                                 font.pointSize: 0.01*root.width
                                 style: Text.Sunken
-                                anchors.top:parent.top
-                                anchors.topMargin:0.01*parent.width
+                                //anchors.top:parent.top
+                                //anchors.topMargin:0.01*parent.width
                                 anchors.left:parent.left
                                 anchors.leftMargin:0.05*parent.width
                             }
@@ -552,7 +555,7 @@ ApplicationWindow {
                             //transparentBorder: true
                         }*/
 
-                       /* contentItem: Text {
+                        contentItem: Text {
                             id:response_button4
                             text:"Close"
                             font.pixelSize:  Math.min(root.width/90,root.height/70)
@@ -577,10 +580,10 @@ ApplicationWindow {
                     message_template2.close()
                 }
 
-            }*/
+            }
 
 
-      /*Dialog
+      Dialog
           {
               id:message_template3
               //standardButtons: StandardButton.Ok|StandardButton.Cancel
@@ -596,8 +599,8 @@ ApplicationWindow {
                               font.bold: true
                               font.pointSize: 0.01*root.width
                               style: Text.Sunken
-                              anchors.top:parent.top
-                              anchors.topMargin:0.01*parent.width
+                              //anchors.top:parent.top
+                              //anchors.topMargin:0.01*parent.width
                               anchors.left:parent.left
                               anchors.leftMargin:0.05*parent.width
                           }
@@ -628,7 +631,7 @@ ApplicationWindow {
               {
                   message_template.close()
               }
-          }*/
+          }
 
       Timer
       {
@@ -848,7 +851,7 @@ ApplicationWindow {
 onClosing:
 {
     //myLink.export_log();
-    VideoStreamer.stop_script();
+    //VideoStreamer.stop_script();
     VideoStreamer.stop_recording()
 }
 
@@ -959,7 +962,7 @@ Rectangle
     anchors.bottomMargin: 0.005*root.width
     width: 0.15*root.width
     height:0.09*root.width
-
+    visible: false
 }
 
 Button
@@ -968,7 +971,7 @@ Button
         width:0.03*root.width
         height:0.03*root.width
         //Layout.alignment: Qt.AlignHCenter
-        visible: true
+        visible: sub_rect.visible
 
         property bool talk:false
         focus: true  // Ensure this item can receive keyboard events
@@ -1016,8 +1019,21 @@ Button
 
             onClicked:
             {
-
-
+                if(!is_overlay)
+                {
+                VideoStreamer.is_subttitle(true);
+                clear_status()
+                template_text2.text="Overlay Status Message!!!    "
+                template_content2.text="Frame Overlay Enabled\n in the\n Current Recording!!!"
+                message_template2.open()
+                }
+                else
+                {
+                    clear_status()
+                    template_text2.text="Overlay Status Alert!!!    "
+                    template_content2.text="Frame Overlay already Enabled\n in the\n Current Recording!!!"
+                    message_template2.open()
+                }
             }
             onEntered:
             {
@@ -1197,7 +1213,10 @@ RowLayout
                                                                     record_tool_text="Stop and\nSave Recording"
                                                                 statusindicator.color="darkgreen";
                                                                 VideoStreamer.start_recording();
-                                                                console.log("Record started")
+                                                                    /*template_text2.text="Alert!!!"
+                                                                    template_content2.text="Video has been saved successfully!!!"
+                                                                    message_template2.open()*/
+                                                                //console.log("Record started")
                                                                 statusindicator.visible=true
                                                                 start_Timer.start()
                                                                     pause_recording.visible=true
@@ -1208,7 +1227,7 @@ RowLayout
                                                                     record_tool_text="Start\nVideo Recording"
                                                                     statusindicator.color="red"
                                                                     VideoStreamer.stop_recording();
-                                                                    console.log("Recording stopped");
+                                                                    //console.log("Recording stopped");
                                                                     start_Timer.elapsedTime=0
                                                                     timerText.text="00:00:00"
                                                                     statusindicator.visible=false

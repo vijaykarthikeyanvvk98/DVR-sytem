@@ -76,3 +76,40 @@ install(
     DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
+if(WIN32)
+    # 1. Locate GStreamer (Ensure GSTREAMER_1_0_ROOT_MSVC_X86_64 is in your Env Vars)
+    set(GST_BIN_DIR "$ENV{GSTREAMER_1_0_ROOT_MSVC_X86_64}bin")
+    set(GST_PLUGIN_DIR "$ENV{GSTREAMER_1_0_ROOT_MSVC_X86_64}lib/gstreamer-1.0")
+
+    # 2. Automated Copy: Post-Build
+    # This copies ALL dlls from GStreamer bin to your executable folder
+    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${GST_BIN_DIR}"
+        "$<TARGET_FILE_DIR:${PROJECT_NAME}>"
+        COMMENT "Copying GStreamer runtime binaries to build folder..."
+    )
+
+    # 3. Copy Plugins (GStreamer MUST find these in a specific subfolder)
+    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${GST_PLUGIN_DIR}"
+        "$<TARGET_FILE_DIR:${PROJECT_NAME}>/gstreamer-1.0"
+        COMMENT "Copying GStreamer plugins to build folder..."
+    )
+endif()
+
+if(WIN32)
+    # 1. Define the OpenCV Binary Path
+    # Since you already set OpenCV_DIR, we point to the 'bin' folder inside it
+    set(OPENCV_BIN_DIR "${OpenCV_DIR}/x64/vc17/bin") # Adjust 'vc16' if using a different VS version
+
+    # 2. Automated Copy: Post-Build
+    # This copies the OpenCV DLLs (like opencv_world.dll) to your EXE folder
+    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${OPENCV_BIN_DIR}"
+        "$<TARGET_FILE_DIR:${PROJECT_NAME}>"
+        COMMENT "Copying OpenCV runtime binaries to build folder..."
+    )
+endif()

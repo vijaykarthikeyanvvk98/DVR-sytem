@@ -92,6 +92,84 @@ static qfloat16 depth = 0;
 static int second_frame_width = 0;
 static int second_frame_height=0;
 static cv::VideoCapture cap, writing_cap, cap2,cap3;
+
+static int delay = 40;
+//Sensors
+QTimer tUpdate;
+QTimer sub_timer;
+QString streaming_path = "";
+std::string outputPathStdString="";
+VideoStreamer *worker2;
+VideoStreamer *worker ;
+bool stream_browse=false;
+int i_1 =0;
+static int frame_y_depth=0;
+static bool one_time_depth=true;
+static int depth_count=0;
+static int sub_i=1;
+static int sub_i2=2;
+static int sub_heading=1;
+static int frame_width=0;
+static int frame_height=0;
+static QString live_time="";
+static QString FPS, YAW, PITCH, ROLL, TEMP, PRESSURE, DEPTH, BATTERY;
+static QString WaterDepths="";
+static int f=0;
+static QString assign_string="";
+static QString subtitleText="";
+const QString ASCII_ART = R"(
+        ##.   ##.          ##             .## .###           .#####.         .###
+         ###  ###           ##             .##.##             .##  ##.        ####=
+          ##  ##            ##             .####              .######        ##. ##
+          .####.            ##             .#####             .##.###       .#######
+           ####             ##              ## .##.            ##  ##+      ##.   ##
+                ###########=##-###########*......#+##########**##:=+##+
+         ###                                #####-                               .###
+          #.##*                          ###.#### ##.                          ##.##
+          .#  .##.                    ###   # #.##  ###                     ###  .#
+           ##    .##               .##     #  #. ##    ###               .##    .#
+            ##      ###         .##.     .#   #.  ##      ##:         .##.     *#
+             ##        ##.    ###        #.   #.   #.       .##     ##.       .#
+              ##         .####          ##    #.    #.         #####          #.
+               ##          ####        ##     #.     #.       .###           #.
+                ##         #-  ###    ##      #.      #     ##   #          #.
+                 #.        ##     ##:##       #.      .#.###     #         ##
+                  #.       ##       ###       #.      ###        #        ##
+                   #.      ##      ##  ###    #.   .##  .#       #       ##
+                   .#      ##     .#      ### #..##.     ##      #      ##
+                    :#     ##    .#          ###.         ##     #     .#
+                     .#    ##   .#         #######.        ##    #    ##
+                      .#   ##   #.       ##   #.  .##       ##   #   =#
+                       ##  ##  ##     ##:     #.     ###     ##  #   #
+                        ## #* #.   ##*        #.        ##.   ## #  #
+                         #####. =##           #.          .##  #.#.#
+                          ######              #.             ######.
+                                ##########################:
+                            ####.             #.             ####-
+                             #   ###          #.         ###.  ##
+                             .#     .###      #.     .###     ##
+                              .#        ###.  #.  ###.       ##
+                                #           #####.          ##
+                                ##            #.           .#
+                                 ##           #.           #
+                                  ##          #.         .#
+                                   ##         #.         #.
+                                    ##        #.        #.
+                                     ##       #.       #.
+                                      #.      #.      #
+                                       #.     #.     ##
+                                        #.    #.    ##
+                                         #    #.   ##
+                                         .#   #.  ##
+                                          ##  #. .#
+                                           *# #.-#
+                                            #####
+                                             ###
+)";
+QStringList lines = ASCII_ART.split('\n');
+int startTime = 0;
+int duration = 1000; // 1 second per line
+static int gh=0;
 GstElement *volume=nullptr;
 //VideoEnhancement video_enhance;
 VideoStreamer::VideoStreamer()
@@ -272,6 +350,7 @@ VideoStreamer::VideoStreamer()
 
 
     connect(&timer_5,&QTimer::timeout,this,&VideoStreamer::write_size);
+    connect(&sub_timer, &QTimer::timeout, this, &VideoStreamer::subtitle_streaming);
 
     //qImageToCvMat();
     //"qrc:/resources/images/vikra_2.jpeg"
@@ -332,6 +411,13 @@ VideoStreamer::~VideoStreamer()
     if (cap2.isOpened())
         cap2.release();
     sendEOS();
+
+    if(subtitleFile.isOpen())
+    {
+        sub_timer.stop();
+        out.flush();
+        subtitleFile.close();
+    }
 }
 
 void VideoStreamer::streamVideo()
@@ -526,6 +612,7 @@ void VideoStreamer::setupLogging(const QString &logFilePath)
 
 void VideoStreamer::createPipeline(const QString path)
 {
+    //qDebug()<<path;
     pipeline = gst_pipeline_new("pipeline");
 
     /* ================= VIDEO SOURCE ================= */
@@ -536,11 +623,10 @@ void VideoStreamer::createPipeline(const QString path)
         return;
     }
 
-    g_object_set(G_OBJECT(appsrc),
+    g_object_set(appsrc,
                  "format", GST_FORMAT_TIME,
-                 "is-live", TRUE,
-                 "do-timestamp", TRUE,
-                 NULL);
+                 NULL, nullptr);
+
 
     /* ================= AUDIO SOURCE ================= */
 
@@ -554,6 +640,7 @@ void VideoStreamer::createPipeline(const QString path)
 
     GstElement *audioQueue3 = gst_element_factory_make("queue", "audio_queue3");
     GstElement *audioQueue4 = gst_element_factory_make("queue", "audio_queue4");
+    g_object_set(audioSource, "sync", TRUE, NULL, nullptr);
 
     /* ================= VIDEO PROCESS ================= */
 
@@ -567,8 +654,8 @@ void VideoStreamer::createPipeline(const QString path)
     GstElement *muxer = gst_element_factory_make("mp4mux", "muxer");
     GstElement *sink = gst_element_factory_make("filesink", "file_sink");
 
-    g_object_set(sink, "location", path.toStdString().c_str(), NULL);
-    g_object_set(muxer, "faststart", TRUE, NULL);
+    g_object_set(sink, "location", path.toStdString().c_str(), NULL, nullptr);
+    g_object_set(muxer, "faststart", TRUE, NULL, nullptr);
 
     /* ================= CAPS ================= */
 
@@ -577,18 +664,18 @@ void VideoStreamer::createPipeline(const QString path)
         "format", G_TYPE_STRING, "BGR",
         "width", G_TYPE_INT, 1080,
         "height", G_TYPE_INT, 720,
-        "framerate", GST_TYPE_FRACTION, 25, 1,
-        NULL
+        "framerate", GST_TYPE_FRACTION, 15, 1,
+        NULL, nullptr
         );
-    g_object_set(G_OBJECT(appsrc), "caps", videoCaps, NULL);
+    g_object_set(G_OBJECT(appsrc), "caps", videoCaps, NULL, nullptr);
     gst_caps_unref(videoCaps);
 
     GstCaps *i420Caps = gst_caps_new_simple(
         "video/x-raw",
         "format", G_TYPE_STRING, "I420",
-        NULL
+        NULL, nullptr
         );
-    g_object_set(G_OBJECT(i420CapsFilter), "caps", i420Caps, NULL);
+    g_object_set(G_OBJECT(i420CapsFilter), "caps", i420Caps, NULL, nullptr);
     gst_caps_unref(i420Caps);
 
     /* ================= ENCODER SETTINGS ================= */
@@ -599,9 +686,9 @@ void VideoStreamer::createPipeline(const QString path)
                  "tune", 4,   // zerolatency
                  NULL);
 
-    g_object_set(audioEnc, "bitrate", 128000, NULL);
+    //g_object_set(audioEnc, "bitrate", 128000, NULL, nullptr);
 
-    g_object_set(audioQueue3, "max-size-time", 5000000000, NULL);
+    //g_object_set(audioQueue3, "max-size-time", 5000000000, NULL, nullptr);
 
     /* ================= ADD TO PIPELINE ================= */
 
@@ -620,7 +707,7 @@ void VideoStreamer::createPipeline(const QString path)
                      audioQueue4,
                      muxer,
                      sink,
-                     NULL);
+                     NULL, nullptr);
 
     /* ================= LINK VIDEO ================= */
 
@@ -630,7 +717,7 @@ void VideoStreamer::createPipeline(const QString path)
                                videoQueue,
                                videoEnc,
                                muxer,
-                               NULL)) {
+                               NULL, nullptr)) {
         qCritical() << "Failed to link video pipeline";
         gst_object_unref(pipeline);
         pipeline = nullptr;
@@ -646,13 +733,18 @@ void VideoStreamer::createPipeline(const QString path)
                                audioEnc,
                                audioQueue4,
                                muxer,
-                               NULL)) {
+                               NULL, nullptr)) {
         qCritical() << "Failed to link audio pipeline";
         gst_object_unref(pipeline);
         pipeline = nullptr;
         return;
     }
-
+    if (!gst_element_link(muxer, sink)) {
+        qCritical() << "Failed to link muxer and sink";
+        gst_object_unref(pipeline);
+        pipeline = nullptr;
+        return;
+    }
     /* ================= BUS ================= */
 
     GstBus *bus = gst_pipeline_get_bus(GST_PIPELINE(pipeline));
@@ -671,8 +763,11 @@ void VideoStreamer::startPipeline()
 
     if(pipeline)
     {
-        //qDebug()<<"Pipeline created";
+        qDebug()<<"Pipeline created";
     }
+    else
+        qDebug()<<"Pipeline is not created";
+
     GstStateChangeReturn ret2 = gst_element_set_state(pipeline, GST_STATE_READY);
     if(ret2 == GST_STATE_CHANGE_FAILURE)
         qCritical() << "Failed to ready pipeline";
@@ -691,15 +786,13 @@ void VideoStreamer::startPipeline()
     recording_status = true;
     exit_status2=false;
     recordingStartTime = QDateTime::currentDateTime();
-
+    is_subttitle(true);
     //timer_5.start(5000);  // 1800000 milliseconds = 30 minutes
 
 }
 
 void VideoStreamer::sendEOS()
 {
-
-
 
     if (pipeline) {
         //qDebug() << "EOS started";
@@ -719,8 +812,8 @@ void VideoStreamer::sendEOS()
         video_src=nullptr;
         audio_src=nullptr;
         QTimer::singleShot(1000, [this]() {
-            //gst_element_set_state(pipeline, GST_STATE_PAUSED);
-            //gst_element_set_state(pipeline, GST_STATE_READY);
+            gst_element_set_state(pipeline, GST_STATE_PAUSED);
+            gst_element_set_state(pipeline, GST_STATE_READY);
             gst_element_set_state(pipeline, GST_STATE_NULL);
             //gst_element_set_state(pipeline2, GST_STATE_NULL);
             gst_object_unref(pipeline);
@@ -835,6 +928,7 @@ void VideoStreamer::pushFrame(Mat push_frame)
     GstBuffer *buffer;
     GstFlowReturn ret;
     int size = push_frame.total() * push_frame.elemSize();
+    //qDebug()<<size;
     buffer = gst_buffer_new_allocate(NULL, size, NULL);
     if (!buffer) {
         qCritical() << "Failed to create GstBuffer";
@@ -895,6 +989,7 @@ void VideoStreamer::reset_pipeline()
 
     createPipeline(outputPath);
     startPipeline();
+
 }
 
 gboolean VideoStreamer::bus_call(GstBus *bus, GstMessage *msg, gpointer data)
@@ -904,7 +999,6 @@ gboolean VideoStreamer::bus_call(GstBus *bus, GstMessage *msg, gpointer data)
     switch (GST_MESSAGE_TYPE(msg)) {
     case GST_MESSAGE_EOS:
         qDebug() << "End of stream";
-
         //gst_element_set_state(GST_ELEMENT(data), GST_STATE_NULL);
         break;
 
@@ -1014,7 +1108,7 @@ void VideoStreamer::stop_script()
 
 void VideoStreamer::push_to_talk(bool status)
 {
-    gst_element_set_state(pipeline2, GST_STATE_PAUSED);
+    /*gst_element_set_state(pipeline2, GST_STATE_PAUSED);
     if(status)
     {
         g_object_set(volumeElement, "volume", 0.1 , nullptr); // Mute if status is true, unmute otherwise
@@ -1025,7 +1119,7 @@ void VideoStreamer::push_to_talk(bool status)
         g_object_set(volumeElement, "volume",1.0, nullptr); // Mute if status is true, unmute otherwise
         stop_script();
     }
-    gst_element_set_state(pipeline2, GST_STATE_PLAYING);
+    gst_element_set_state(pipeline2, GST_STATE_PLAYING);*/
 }
 
 Mat VideoStreamer::apply_enhance(Mat enhancing_frame)
@@ -1782,3 +1876,338 @@ void VideoStreamer::stream_check()
     if(cap2.isOpened())
         ;//qDebug()<<"opened";
 }
+
+
+void VideoStreamer::change_cam(int path)
+{
+    if(cap.isOpened())
+    {
+        cap.release();
+    }
+
+    cap.open(path);
+
+}
+
+
+
+void VideoStreamer::set_name(QString text)
+{
+    subtitleText = text;
+
+}
+
+
+
+void VideoStreamer::write_check(double value)
+{
+    WaterDepths = "Depth-"+QString::number(f)+":"+QString::number(value,'f',1)+"m";
+    dep_arr.append(WaterDepths);
+    f++;
+    //qDebug()<<WaterDepths;
+    if(depth_set_enable)
+    {
+        dep_arr.clear();
+        depth_set_enable=false;
+    }
+}
+
+
+
+void VideoStreamer::set_time(QString time)
+{
+    live_time = time;
+
+}
+
+
+
+void VideoStreamer::increment_counter()
+{
+
+}
+
+
+
+void VideoStreamer::subtitle_streaming()
+{
+    //qDebug()<<frame_width<<frame_height;
+
+    if (subtitleFile.isOpen())
+    {
+        // Create subtitle text with sensor value
+        //subtitleText = "Sensor Value: " + QString::number(sub_i);
+
+        // Write subtitle to the .ass file for all four corners
+        out << "Dialogue: 0,00:00:" + QString::number(sub_i) + ".00,00:00:" + QString::number(sub_i2) + ".00,Default,,0,0,0,,"
+            << "{\\pos(50,20)}" // Top Left
+            << "{\\fs" + QString::number(10) + "}"
+            << YAW + "\n";
+
+        if(WaterDepths != "")
+        {
+            for(int i=0;i< dep_arr.length();i++)
+            {
+                assign_string = dep_arr[i];
+                if(i==0)
+                {
+                    out << "Dialogue: 0,00:00:" + QString::number(sub_i) + ".00,00:00:" + QString::number(sub_i2) + ".00,Default,,0,0,0,,"
+                        << "{\\pos(50,"+QString::number(20+0.05*frame_height,'f',0)+")}"
+                        << "{\\fs" + QString::number(10) + "}"
+                        << assign_string + "\n";
+                }
+                else
+                {
+                    out << "Dialogue: 0,00:00:" + QString::number(sub_i) + ".00,00:00:" + QString::number(sub_i2) + ".00,Default,,0,0,0,,"
+                        << "{\\pos(50,"+QString::number(20+0.05*frame_height+i*0.05*frame_height,'f',0)+")}"
+                        << "{\\fs" + QString::number(10) + "}"
+                        << assign_string + "\n";
+                }
+            }
+        }
+
+        out << "Dialogue: 0,00:00:" + QString::number(sub_i) + ".00,00:00:" + QString::number(sub_i2) + ".00,Default,,0,0,0,,"
+            << "{\\pos("+QString::number(0.7*frame_width,'f',0)+",20)}" // Top Right
+            << "{\\fs" + QString::number(10) + "}"
+            << live_time + "\n";
+
+        out << "Dialogue: 0,00:00:" + QString::number(sub_i) + ".00,00:00:" + QString::number(sub_i2) + ".00,Default,,0,0,0,,"
+            << "{\\pos(50,"+QString::number(0.9*frame_height,'f',0)+")}" // Bottom Left
+            << "{\\fs" + QString::number(10) + "}"
+            << subtitleText + "\n";
+
+
+        out << "Dialogue: 0,00:00:" + QString::number(sub_i) + ".00,00:00:" + QString::number(sub_i2) + ".00,Default,,0,0,0,,"
+            << "{\\pos("+QString::number(0.7*frame_width,'f',0)+","+QString::number(0.9*frame_height,'f',0)+")}" // Bottom Right
+            << "{\\fs" + QString::number(10) + "}"
+            << PITCH + "\n";
+        /*for (const QString &line : lines) {
+                 //if (line.trimmed().isEmpty()) continue;
+                 int endTime = startTime + duration;
+
+                 out << "Dialogue: 0,00:00:" + QString::number(sub_i) + ".00,00:00:" + QString::number(sub_i2) + ".00,Default,,0,0,0,,"
+                     << "{\\pos("+QString::number(0.1*frame_width,'f',0)+","+QString::number(0.1*frame_height+gh*0.001*frame_height,'f',0)+")}" // Bottom Right
+                     << "{\\fs" + QString::number(1) + "}"
+                     << line + "\n";
+                 startTime += duration;
+                 //qDebug()<<line;
+                 gh++;
+             }*/
+        gh=0;
+
+        sub_i++;
+        sub_i2++;
+    }
+}
+
+
+
+void VideoStreamer::set_count_depth(int value)
+{
+    depth_count=value;
+
+}
+
+
+
+void VideoStreamer::set_depth_enable(bool value)
+{
+    //qDebug()<<value;
+    depth_set_enable = value;
+    if(depth_set_enable)
+        emit depth_enabled();
+    else
+        emit depth_resetted();
+}
+
+
+
+void VideoStreamer::open_image(QString Path)
+{
+    //qDebug()<<"image";
+    if (cap.isOpened()) {
+        tUpdate.stop();
+        threadStreamer->requestInterruption();
+    } else
+        ;
+
+    if (Path.startsWith("file:///")) {
+        Path = Path.remove(0, 8);
+    } else
+        ;
+    Mat image = cv::imread(Path.toStdString(), cv::IMREAD_COLOR);
+
+    if (!image.empty()) {
+        QImage img = QImage(image.data, image.cols, image.rows, QImage::Format_RGB888)
+        .rgbSwapped();
+        emit newImage(img);
+    }
+}
+
+
+
+void VideoStreamer::export_video()
+{
+    cap2.open(outputPathStdString);
+
+    if(!cap2.isOpened())
+        qDebug()<<"Error in opening File";
+    else;
+    cv::Mat writing_frame;
+    int writing_delay = 40;
+    int frame_width = cap.get(cv::CAP_PROP_FRAME_WIDTH);
+    int frame_height = cap.get(cv::CAP_PROP_FRAME_HEIGHT);
+    writing_video.open(outputPathStdString,
+                       cv::VideoWriter::fourcc('X', 'V', 'I', 'D'),
+                       cap2.get(cv::CAP_PROP_FPS),
+                       Size(720, 480),
+                       true);
+    if (!writing_video.isOpened()) {
+        qDebug() << "Error: Could not open the video writer.";
+        recording_status = false;
+    }
+
+    else {
+        while (true) {
+            auto startTime = std::chrono::high_resolution_clock::now();
+            cap2 >> writing_frame;
+            if (writing_frame.data) {
+                writing_video.write(writing_frame);
+            } else {
+                writing_video.release();
+                cap2.release();
+                return;
+            }
+            auto endTime = std::chrono::high_resolution_clock::now();
+            // Calculate the actual time taken to process the frame
+            int actual_difference
+                = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count();
+            int outcome = std::abs(calculated_difference - actual_difference);
+            if (actual_difference < calculated_difference)
+                writing_delay = outcome + actual_difference;
+
+            else
+                writing_delay = actual_difference - outcome;
+
+            if (writing_delay > 1000 || writing_delay < 0)
+                writing_delay = 40;
+
+            std::this_thread::sleep_for(std::chrono::milliseconds(writing_delay));
+        }
+    }
+}
+
+
+
+void VideoStreamer::close_open_thread()
+{
+    //worker2->
+    /*threadStreamer2->quit();
+    threadStreamer2->wait();
+
+    delete worker2;
+    worker2 = nullptr;
+
+    delete threadStreamer2;
+    threadStreamer2 = nullptr;*/
+    tUpdate.stop();
+    cap.release();
+    recording_status=false;
+    if (video.isOpened())
+        video.release();
+
+    if(cap.isOpened())
+        qDebug()<<"Opened";
+    else
+        qDebug()<<"Closed";
+
+
+
+}
+
+
+
+void VideoStreamer::opening_thread()
+{
+    // qDebug()<<streaming_path;
+    if (cap.isOpened()) {
+        tUpdate.stop();
+        cap.release();
+        if (video.isOpened())
+            video.release();
+    }
+
+
+    //status_changed=true;
+
+    if (streaming_path.length() == 1)
+    {
+        cap.open(streaming_path.toInt());
+        emit open_finished();
+
+    }
+    else
+    {
+        cap.open(streaming_path.toStdString());
+        emit open_finished();
+
+    }
+
+
+
+    if (!cap.isOpened()) {
+        qDebug() << "error occured";
+        return;
+    }
+    else
+        ;
+
+
+    // return;
+}
+
+
+
+void VideoStreamer::is_subttitle(bool value)
+{
+    //qDebug()<<value;
+    if(value)
+    {
+        if(subtitleFile.isOpen())
+        {
+            sub_timer.stop();
+            out.flush();
+            subtitleFile.close();
+            sub_i=0;
+            sub_i2=0;
+        }
+        QDateTime currentDateTime = QDateTime::currentDateTime();
+        formattedTime = currentDateTime.toString("dd.MM.yyyy-hh.mm.ss");
+
+        QString outputPath2 = logFileDir + "/Recording-" + formattedTime + ".ass";
+        subtitleFile.setFileName(outputPath2);
+
+        outputPathStdString= outputPath.toStdString();
+        if (subtitleFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
+            out.setDevice(&subtitleFile);
+            // Write the ASS file header and styles
+            out << "[Script Info]\n";
+            out << "Title: Example ASS File\n";
+            out << "Original Script: OpenAI\n";
+            out << "ScriptType: v4.00+\n";
+            out << "Collisions: Normal\n";
+            out << "PlayDepth: 0\n\n";
+
+            out << "[V4+ Styles]\n";
+            out << "Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, BackColour, Bold, Italic, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding\n";
+            out << "Style: Default,Arial,20,&H00FFFFFF,&H00000000,&H00000000,-1,0,1,1.0,0.0,2,10,10,10,1\n\n";
+
+            out << "[Events]\n";
+            out << "Format: Marked, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\n";
+        }
+        sub_timer.start(1000);
+    }
+    else
+        ;
+}
+
