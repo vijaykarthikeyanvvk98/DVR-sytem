@@ -76,28 +76,7 @@ install(
     DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
-if(WIN32)
-    # 1. Locate GStreamer (Ensure GSTREAMER_1_0_ROOT_MSVC_X86_64 is in your Env Vars)
-    set(GST_BIN_DIR "$ENV{GSTREAMER_1_0_ROOT_MSVC_X86_64}bin")
-    set(GST_PLUGIN_DIR "$ENV{GSTREAMER_1_0_ROOT_MSVC_X86_64}lib/gstreamer-1.0")
 
-    # 2. Automated Copy: Post-Build
-    # This copies ALL dlls from GStreamer bin to your executable folder
-    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-        "${GST_BIN_DIR}"
-        "$<TARGET_FILE_DIR:${PROJECT_NAME}>"
-        COMMENT "Copying GStreamer runtime binaries to build folder..."
-    )
-
-    # 3. Copy Plugins (GStreamer MUST find these in a specific subfolder)
-    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-        "${GST_PLUGIN_DIR}"
-        "$<TARGET_FILE_DIR:${PROJECT_NAME}>/gstreamer-1.0"
-        COMMENT "Copying GStreamer plugins to build folder..."
-    )
-endif()
 
 if(WIN32)
     # 1. Define the OpenCV Binary Path
@@ -112,4 +91,11 @@ if(WIN32)
         "$<TARGET_FILE_DIR:${PROJECT_NAME}>"
         COMMENT "Copying OpenCV runtime binaries to build folder..."
     )
+
+
 endif()
+
+add_custom_target(installer
+    COMMAND makensis ${CMAKE_SOURCE_DIR}/installer/setup.nsi
+)
+

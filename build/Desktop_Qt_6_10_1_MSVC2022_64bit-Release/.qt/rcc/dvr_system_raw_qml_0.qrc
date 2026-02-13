@@ -1,0 +1,6 @@
+<RCC>
+  <qresource prefix="/dvr_system/">
+    <file alias="Main.qml">C:/Users/vijay/dvr_system/Main.qml</file>
+  </qresource>
+</RCC>
+

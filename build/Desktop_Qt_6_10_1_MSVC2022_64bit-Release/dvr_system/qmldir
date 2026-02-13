@@ -1,0 +1,6 @@
+module dvr_system
+typeinfo dvr_system.qmltypes
+prefer :/dvr_system/
+Main 1.0 Main.qml
+depends QtQuick
+
