@@ -177,6 +177,13 @@ VideoStreamer::VideoStreamer()
     //start_script();
     //qDebug()<<recording_status;
     gst_init(nullptr, nullptr);
+    /*GstElementFactory *factory =
+        gst_element_factory_find("fakesrc");
+
+    if (factory)
+        qDebug() << "fakesrc factory FOUND";
+    else
+        qDebug() << "fakesrc factory NOT found";*/
     // Create the GStreamer elements
     /*GstElement *src = gst_element_factory_make("udpsrc", "src");
     GstElement *rtpopusdepay = gst_element_factory_make("rtpopusdepay", "rtpopusdepay");
@@ -637,11 +644,15 @@ void VideoStreamer::createPipeline(const QString path)
     GstElement *audioConvert = gst_element_factory_make("audioconvert", "audio_convert");
     GstElement *audioResample = gst_element_factory_make("audioresample", "audio_resample");
     GstElement *audioEnc = gst_element_factory_make("avenc_aac", "audio_enc");
-
+    volumeElement = gst_element_factory_make("volume", "volume");
+    if (!volumeElement) {
+        qCritical() << "Failed to create volume element";
+        return;
+    }
     GstElement *audioQueue3 = gst_element_factory_make("queue", "audio_queue3");
     GstElement *audioQueue4 = gst_element_factory_make("queue", "audio_queue4");
     g_object_set(audioSource, "sync", TRUE, NULL, nullptr);
-
+    g_object_set(volumeElement, "volume", 0.0, NULL, nullptr);
     /* ================= VIDEO PROCESS ================= */
 
     GstElement *videoConvert = gst_element_factory_make("videoconvert", "video_convert");
@@ -654,9 +665,36 @@ void VideoStreamer::createPipeline(const QString path)
     GstElement *muxer = gst_element_factory_make("mp4mux", "muxer");
     GstElement *sink = gst_element_factory_make("filesink", "file_sink");
 
+
+    GstElement *amplify = gst_element_factory_make("audioamplify", "amplify");
+    GstElement *limit = gst_element_factory_make("audiocheblimit", "audiocheblimit");
+    GstElement *dynamic = gst_element_factory_make("audiodynamic", "dynamic");
+    GstElement *level = gst_element_factory_make("level", "level");
+    GstElement *resample2 = gst_element_factory_make("audioresample", "resample2");
+    GstElement *convert2 = gst_element_factory_make("audioconvert", "convert2");
+    GstElement *volume = gst_element_factory_make("volume", "volume");
+    GstElement *filter = gst_element_factory_make("audiowsinclimit", "audiowsinclimit");
+    GstElement *equalizer = gst_element_factory_make("equalizer-10bands", "equalizer");
+
     g_object_set(sink, "location", path.toStdString().c_str(), NULL, nullptr);
     g_object_set(muxer, "faststart", TRUE, NULL, nullptr);
 
+    g_object_set(equalizer,
+                 "band0", -20.0,  // 31.25 Hz
+                 "band1", -20.0,  // 62.5 Hz
+                 "band2", -20.0,   // 125 Hz
+                 "band3", -20.0,   // 250 Hz
+                 "band4", -20.0,   // 500 Hz
+                 "band5", -20.0,   // 1 kHz
+                 "band6", 0.0,  // 2 kHz
+                 "band7", 5.0,  // 4 kHz
+                 "band8", 0.0,   // 8 kHz
+                 "band9", 5.0,   // 16 kHz
+                 NULL, nullptr);
+
+
+    //g_object_set(audioEnc, "bitrate", 44100, NULL, nullptr);
+    g_object_set(amplify, "amplification", 7.0, NULL, nullptr);
     /* ================= CAPS ================= */
 
     GstCaps *videoCaps = gst_caps_new_simple(
@@ -676,6 +714,10 @@ void VideoStreamer::createPipeline(const QString path)
         NULL, nullptr
         );
     g_object_set(G_OBJECT(i420CapsFilter), "caps", i420Caps, NULL, nullptr);
+    /*g_object_set(G_OBJECT(i420CapsFilter), "caps",
+                 gst_caps_new_simple("video/x-raw",
+                                     "format", G_TYPE_STRING, "I420",
+                                     NULL, nullptr), NULL, nullptr);*/
     gst_caps_unref(i420Caps);
 
     /* ================= ENCODER SETTINGS ================= */
@@ -686,9 +728,9 @@ void VideoStreamer::createPipeline(const QString path)
                  "tune", 4,   // zerolatency
                  NULL);
 
-    //g_object_set(audioEnc, "bitrate", 128000, NULL, nullptr);
+    g_object_set(audioEnc, "bitrate", 128000, NULL, nullptr);
 
-    //g_object_set(audioQueue3, "max-size-time", 5000000000, NULL, nullptr);
+    g_object_set(audioQueue3, "max-size-time", 5000000000, NULL, nullptr);
 
     /* ================= ADD TO PIPELINE ================= */
 
@@ -703,6 +745,7 @@ void VideoStreamer::createPipeline(const QString path)
                      audioConvert,
                      audioResample,
                      audioQueue3,
+                     volumeElement,      // 👈 ADD HERE
                      audioEnc,
                      audioQueue4,
                      muxer,
@@ -730,6 +773,7 @@ void VideoStreamer::createPipeline(const QString path)
                                audioConvert,
                                audioResample,
                                audioQueue3,
+                               volumeElement,   // 👈 INSERT HERE
                                audioEnc,
                                audioQueue4,
                                muxer,
@@ -763,7 +807,7 @@ void VideoStreamer::startPipeline()
 
     if(pipeline)
     {
-        qDebug()<<"Pipeline created";
+        //qDebug()<<"Pipeline created";
     }
     else
         qDebug()<<"Pipeline is not created";
@@ -1108,18 +1152,21 @@ void VideoStreamer::stop_script()
 
 void VideoStreamer::push_to_talk(bool status)
 {
-    /*gst_element_set_state(pipeline2, GST_STATE_PAUSED);
+    if (!volumeElement)
+        return;
+
+    gst_element_set_state(pipeline, GST_STATE_PAUSED);
     if(status)
     {
-        g_object_set(volumeElement, "volume", 0.1 , nullptr); // Mute if status is true, unmute otherwise
-        start_script();
+        g_object_set(volumeElement, "volume", 0.01 , nullptr); // Mute if status is true, unmute otherwise
+        //start_script();
     }
     else
     {
         g_object_set(volumeElement, "volume",1.0, nullptr); // Mute if status is true, unmute otherwise
-        stop_script();
+        //stop_script();
     }
-    gst_element_set_state(pipeline2, GST_STATE_PLAYING);*/
+    gst_element_set_state(pipeline, GST_STATE_PLAYING);
 }
 
 Mat VideoStreamer::apply_enhance(Mat enhancing_frame)
@@ -1171,9 +1218,9 @@ void VideoStreamer::openVideoCamera()
     threadStreamer->start();
     //tUpdate.start();
     if (1000 / cap.get(cv::CAP_PROP_FPS) > sizeof(double))
-        tUpdate.start(1000 / 30);
+        tUpdate.start(1000.0 / 30.0);
     else
-        tUpdate.start(1000 / cap.get(cv::CAP_PROP_FPS));
+        tUpdate.start(1000.0 / cap.get(cv::CAP_PROP_FPS));
 }
 
 void VideoStreamer::openVideoCamera2(QString path)
@@ -1569,7 +1616,7 @@ void VideoStreamer::create_directory()
     // Get the target directory path for saving files.
     QString targetDirectory = QStandardPaths::writableLocation(QStandardPaths::MoviesLocation);
     // Modify the target directory to add a subdirectory for your files.
-    logFileDir = targetDirectory + "/UWC";
+    logFileDir = targetDirectory + "/Leo";
 
     // Create the directory if it doesn't exist.
     QDir().mkpath(logFileDir);
@@ -1577,7 +1624,7 @@ void VideoStreamer::create_directory()
     // Get the target directory path for saving files.
     QString targetDirectory2 = QStandardPaths::writableLocation(QStandardPaths::PicturesLocation);
     // Modify the target directory to add a subdirectory for your files.
-    logFileDir2 = targetDirectory2 + "/UWC Images";
+    logFileDir2 = targetDirectory2 + "/Leo Images";
 
     // Create the directory if it doesn't exist.
     QDir().mkpath(logFileDir2);
@@ -1585,10 +1632,10 @@ void VideoStreamer::create_directory()
     // Get the target directory path for saving files.
     QString targetDirectory3 = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
     // Modify the target directory to add a subdirectory for your files.
-    logFileDir3 = targetDirectory3 + "/UWC Data";
+    logFileDir3 = targetDirectory3 + "/Leo Data";
 
     // Create the directory if it doesn't exist.
-    QDir().mkpath(logFileDir3);
+    //QDir().mkpath(logFileDir3);
 
     // Get the target directory path for saving files.
     QString targetDirectory4 = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
@@ -1596,7 +1643,7 @@ void VideoStreamer::create_directory()
     logFileDir4 = targetDirectory4 + "/UWC test";
 
     // Create the directory if it doesn't exist.
-    QDir().mkpath(logFileDir4);
+    //QDir().mkpath(logFileDir4);
 }
 
 void VideoStreamer::set_ahrs(QVariantList array)

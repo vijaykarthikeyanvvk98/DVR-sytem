@@ -265,8 +265,8 @@ ApplicationWindow {
             anchors.bottomMargin: 0.005*parent.width
             anchors.right: imageRect.right
             anchors.rightMargin: 0.005*parent.width
-            width: 0.15*parent.width
-            height: 0.175*parent.height
+            width: 0.2*parent.width
+            height: 0.2*parent.height
             //anchors.margins: 0.005*parent.width
             color: "black"
             border.color: "white"
@@ -881,7 +881,7 @@ function capture_map_image()
                                     var filePath = logFileDir + fileName;
                                     //console.log(filePath)
                                     filePath = filePath.replace("file:///", "");
-                                    console.log(filePath)
+                                    //console.log(filePath)
                                     if (result.saveToFile(filePath + ".jpeg")) {
                                         //console.log("Success: " + filePath);
                                         count_ss++
@@ -1610,7 +1610,7 @@ RowLayout
 
                                 onPressed:
                                 {
-                                    if(area_12.source=="qrc:/dvr_system/images/mike_on.png")
+                                    /*if(area_12.source=="qrc:/dvr_system/images/mike_on.png")
                                     {
                                         if(mike_on_off.talk==false)
                                         {
@@ -1618,30 +1618,30 @@ RowLayout
                                             VideoStreamer.push_to_talk(true)
                                             mike_on_off.talk=true
                                         }
-                                    }
+                                    }*/
                                 }
 
                                 onPressAndHold:
                                 {
-                                    if(area_12.source=="qrc:/dvr_system/images/mike_on.png")
+                                    /*if(area_12.source=="qrc:/dvr_system/images/mike_on.png")
                                     {
                                         if(mike_on_off.talk==false)
                                         {
                                             VideoStreamer.push_to_talk(true)
                                             mike_on_off.talk=true
                                         }
-                                    }
+                                    }*/
                                 }
 
                                 onReleased:
                                 {
 
-                                    if(mike_on_off.talk==true)
+                                    /*if(mike_on_off.talk==true)
                                     {
                                         VideoStreamer.push_to_talk(false)
                                     }
 
-                                    mike_on_off.talk=false
+                                    mike_on_off.talk=false*/
 
                                 }
 

@@ -6,11 +6,16 @@
 #include <QQmlApplicationEngine>
 #include "opencvimageprovider.h"
 #include "videostreamer.h"
+#include <QSplashScreen>
+
 using namespace cv;
 int main(int argc, char *argv[])
 {
     //std::cout << cv::getBuildInformation() << std::endl;
     QApplication a(argc, argv);
+    QSplashScreen *splash = new QSplashScreen;
+    splash->setPixmap(QPixmap(":/resources/images/vikra_2.jpeg"));
+    splash->show();
     qRegisterMetaType<cv::Mat>("cv::Mat");
     //std::cout << cv::getBuildInformation() << std::endl;
     VideoStreamer videoStreamer;
@@ -51,6 +56,7 @@ int main(int argc, char *argv[])
         window->showMaximized();
         window->setMinimumSize(QSize(670, 470));
     }
+    QTimer::singleShot(1000,splash,SLOT(close()));
 
     return a.exec();
 }
