@@ -2,47 +2,29 @@
     {
         "classes": [
             {
-                "className": "MainWindow",
-                "lineNumber": 6,
-                "object": true,
-                "qualifiedClassName": "MainWindow",
-                "superClasses": [
-                    {
-                        "access": "public",
-                        "name": "QMainWindow"
-                    }
-                ]
-            }
-        ],
-        "inputFile": "mainwindow.h",
-        "outputRevision": 69
-    },
-    {
-        "classes": [
-            {
                 "className": "OpencvImageProvider",
-                "lineNumber": 9,
+                "lineNumber": 15,
                 "object": true,
                 "qualifiedClassName": "OpencvImageProvider",
                 "signals": [
                     {
                         "access": "public",
                         "index": 0,
-                        "lineNumber": 22,
+                        "lineNumber": 53,
                         "name": "imageChanged",
                         "returnType": "void"
                     },
                     {
                         "access": "public",
                         "index": 1,
-                        "lineNumber": 23,
+                        "lineNumber": 58,
                         "name": "imageChanged2",
                         "returnType": "void"
                     },
                     {
                         "access": "public",
                         "index": 2,
-                        "lineNumber": 24,
+                        "lineNumber": 63,
                         "name": "no_image",
                         "returnType": "void"
                     }
@@ -57,7 +39,7 @@
                             }
                         ],
                         "index": 3,
-                        "lineNumber": 18,
+                        "lineNumber": 40,
                         "name": "updateImage",
                         "returnType": "void"
                     },
@@ -70,7 +52,7 @@
                             }
                         ],
                         "index": 4,
-                        "lineNumber": 19,
+                        "lineNumber": 46,
                         "name": "updateImage2",
                         "returnType": "void"
                     }
@@ -90,7 +72,7 @@
         "classes": [
             {
                 "className": "VideoStreamer",
-                "lineNumber": 24,
+                "lineNumber": 17,
                 "object": true,
                 "qualifiedClassName": "VideoStreamer",
                 "signals": [
@@ -102,7 +84,7 @@
                             }
                         ],
                         "index": 0,
-                        "lineNumber": 156,
+                        "lineNumber": 78,
                         "name": "newImage",
                         "returnType": "void"
                     },
@@ -115,7 +97,7 @@
                             }
                         ],
                         "index": 1,
-                        "lineNumber": 157,
+                        "lineNumber": 79,
                         "name": "emitThreadImage",
                         "returnType": "void"
                     },
@@ -127,7 +109,7 @@
                             }
                         ],
                         "index": 2,
-                        "lineNumber": 158,
+                        "lineNumber": 80,
                         "name": "newImage2",
                         "returnType": "void"
                     },
@@ -140,84 +122,51 @@
                             }
                         ],
                         "index": 3,
-                        "lineNumber": 159,
+                        "lineNumber": 81,
                         "name": "emitThreadImage2",
                         "returnType": "void"
                     },
                     {
                         "access": "public",
                         "index": 4,
-                        "lineNumber": 160,
+                        "lineNumber": 82,
                         "name": "writing_success",
                         "returnType": "void"
                     },
                     {
                         "access": "public",
                         "index": 5,
-                        "lineNumber": 161,
-                        "name": "stop",
-                        "returnType": "void"
-                    },
-                    {
-                        "access": "public",
-                        "index": 6,
-                        "lineNumber": 162,
+                        "lineNumber": 83,
                         "name": "recording_stop",
                         "returnType": "void"
                     },
                     {
                         "access": "public",
-                        "index": 7,
-                        "lineNumber": 163,
-                        "name": "interrupt_request",
-                        "returnType": "void"
-                    },
-                    {
-                        "access": "public",
-                        "index": 8,
-                        "lineNumber": 164,
+                        "index": 6,
+                        "lineNumber": 84,
                         "name": "open_finished",
                         "returnType": "void"
                     },
                     {
                         "access": "public",
-                        "index": 9,
-                        "lineNumber": 165,
-                        "name": "depth_enabled",
-                        "returnType": "void"
-                    },
-                    {
-                        "access": "public",
-                        "index": 10,
-                        "lineNumber": 166,
-                        "name": "depth_resetted",
-                        "returnType": "void"
-                    },
-                    {
-                        "access": "public",
-                        "index": 11,
-                        "lineNumber": 167,
+                        "index": 7,
+                        "lineNumber": 85,
                         "name": "write_finished",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 8,
+                        "lineNumber": 86,
+                        "name": "stop",
                         "returnType": "void"
                     }
                 ],
                 "slots": [
                     {
                         "access": "public",
-                        "arguments": [
-                            {
-                                "type": "cv::Mat"
-                            }
-                        ],
-                        "index": 12,
-                        "lineNumber": 51,
-                        "name": "apply_enhance",
-                        "returnType": "Mat"
-                    },
-                    {
-                        "access": "public",
-                        "index": 13,
-                        "lineNumber": 52,
+                        "index": 9,
+                        "lineNumber": 42,
                         "name": "openVideoCamera",
                         "returnType": "void"
                     },
@@ -228,375 +177,95 @@
                                 "type": "QString"
                             }
                         ],
-                        "index": 14,
-                        "lineNumber": 53,
+                        "index": 10,
+                        "lineNumber": 43,
                         "name": "openVideoCamera2",
                         "returnType": "void"
                     },
                     {
                         "access": "public",
-                        "index": 15,
-                        "lineNumber": 54,
+                        "index": 11,
+                        "lineNumber": 44,
                         "name": "start_recording",
                         "returnType": "void"
                     },
                     {
                         "access": "public",
-                        "index": 16,
-                        "lineNumber": 55,
+                        "index": 12,
+                        "lineNumber": 45,
                         "name": "streamerThreadSlot",
                         "returnType": "void"
                     },
                     {
                         "access": "public",
-                        "index": 17,
-                        "lineNumber": 56,
+                        "index": 13,
+                        "lineNumber": 46,
                         "name": "streamerThreadSlot2",
                         "returnType": "void"
                     },
                     {
                         "access": "public",
-                        "index": 18,
-                        "lineNumber": 57,
-                        "name": "stop_streaming",
-                        "returnType": "void"
-                    },
-                    {
-                        "access": "public",
-                        "index": 19,
-                        "lineNumber": 58,
+                        "index": 14,
+                        "lineNumber": 47,
                         "name": "stop_recording",
                         "returnType": "void"
                     },
                     {
                         "access": "public",
-                        "index": 20,
-                        "lineNumber": 59,
+                        "index": 15,
+                        "lineNumber": 48,
                         "name": "pause_streaming",
                         "returnType": "void"
                     },
                     {
                         "access": "public",
-                        "index": 21,
-                        "lineNumber": 60,
+                        "index": 16,
+                        "lineNumber": 49,
                         "name": "create_directory",
                         "returnType": "void"
                     },
                     {
                         "access": "public",
-                        "arguments": [
-                            {
-                                "type": "QVariantList"
-                            }
-                        ],
-                        "index": 22,
-                        "lineNumber": 61,
-                        "name": "set_ahrs",
-                        "returnType": "void"
-                    },
-                    {
-                        "access": "public",
-                        "arguments": [
-                            {
-                                "type": "cv::Mat"
-                            }
-                        ],
-                        "index": 23,
-                        "lineNumber": 62,
-                        "name": "histogram_equalization",
-                        "returnType": "void"
-                    },
-                    {
-                        "access": "public",
-                        "arguments": [
-                            {
-                                "type": "Mat"
-                            },
-                            {
-                                "type": "double"
-                            }
-                        ],
-                        "index": 24,
-                        "lineNumber": 63,
-                        "name": "gamma_correction",
-                        "returnType": "cv::Mat"
-                    },
-                    {
-                        "access": "public",
-                        "arguments": [
-                            {
-                                "name": "brightness",
-                                "type": "double"
-                            },
-                            {
-                                "name": "contrast",
-                                "type": "double"
-                            }
-                        ],
-                        "index": 25,
-                        "lineNumber": 64,
-                        "name": "edited_parameters",
-                        "returnType": "void"
-                    },
-                    {
-                        "access": "public",
-                        "arguments": [
-                            {
-                                "type": "int"
-                            }
-                        ],
-                        "index": 26,
-                        "lineNumber": 65,
-                        "name": "filter_selection",
-                        "returnType": "void"
-                    },
-                    {
-                        "access": "public",
-                        "arguments": [
-                            {
-                                "name": "Path",
-                                "type": "QString"
-                            }
-                        ],
-                        "index": 27,
-                        "lineNumber": 66,
-                        "name": "export_video",
-                        "returnType": "void"
-                    },
-                    {
-                        "access": "public",
-                        "arguments": [
-                            {
-                                "type": "bool"
-                            }
-                        ],
-                        "index": 28,
-                        "lineNumber": 67,
-                        "name": "normal_processed",
-                        "returnType": "void"
-                    },
-                    {
-                        "access": "public",
-                        "arguments": [
-                            {
-                                "type": "int"
-                            },
-                            {
-                                "type": "int"
-                            }
-                        ],
-                        "index": 29,
-                        "lineNumber": 68,
-                        "name": "set_filter_parameters",
-                        "returnType": "void"
-                    },
-                    {
-                        "access": "public",
-                        "index": 30,
-                        "lineNumber": 69,
-                        "name": "stream_check",
-                        "returnType": "void"
-                    },
-                    {
-                        "access": "public",
-                        "index": 31,
-                        "lineNumber": 70,
+                        "index": 17,
+                        "lineNumber": 50,
                         "name": "sendEOS",
                         "returnType": "void"
                     },
                     {
                         "access": "public",
-                        "index": 32,
-                        "lineNumber": 71,
+                        "index": 18,
+                        "lineNumber": 51,
                         "name": "qImageToCvMat",
                         "returnType": "void"
                     },
                     {
                         "access": "public",
-                        "index": 33,
-                        "lineNumber": 72,
-                        "name": "write_size",
-                        "returnType": "void"
-                    },
-                    {
-                        "access": "public",
-                        "arguments": [
-                            {
-                                "name": "size",
-                                "type": "qint64"
-                            }
-                        ],
-                        "index": 34,
-                        "lineNumber": 73,
-                        "name": "formatFileSize",
-                        "returnType": "QString"
-                    },
-                    {
-                        "access": "public",
                         "arguments": [
                             {
                                 "type": "bool"
                             }
                         ],
-                        "index": 35,
-                        "lineNumber": 74,
+                        "index": 19,
+                        "lineNumber": 52,
                         "name": "pushback",
                         "returnType": "void"
                     },
                     {
                         "access": "public",
-                        "index": 36,
-                        "lineNumber": 75,
-                        "name": "start_script",
-                        "returnType": "void"
-                    },
-                    {
-                        "access": "public",
-                        "index": 37,
-                        "lineNumber": 76,
-                        "name": "stop_script",
-                        "returnType": "void"
-                    },
-                    {
-                        "access": "public",
-                        "arguments": [
-                            {
-                                "type": "bool"
-                            }
-                        ],
-                        "index": 38,
-                        "lineNumber": 77,
-                        "name": "push_to_talk",
-                        "returnType": "void"
-                    },
-                    {
-                        "access": "public",
-                        "index": 39,
-                        "lineNumber": 78,
-                        "name": "opening_thread",
-                        "returnType": "void"
-                    },
-                    {
-                        "access": "public",
-                        "index": 40,
-                        "lineNumber": 79,
-                        "name": "close_open_thread",
-                        "returnType": "void"
-                    },
-                    {
-                        "access": "public",
-                        "index": 41,
-                        "lineNumber": 80,
-                        "name": "export_video",
-                        "returnType": "void"
-                    },
-                    {
-                        "access": "public",
-                        "arguments": [
-                            {
-                                "type": "QString"
-                            }
-                        ],
-                        "index": 42,
-                        "lineNumber": 81,
-                        "name": "open_image",
-                        "returnType": "void"
-                    },
-                    {
-                        "access": "public",
-                        "arguments": [
-                            {
-                                "type": "bool"
-                            }
-                        ],
-                        "index": 43,
-                        "lineNumber": 82,
-                        "name": "set_depth_enable",
-                        "returnType": "void"
-                    },
-                    {
-                        "access": "public",
-                        "arguments": [
-                            {
-                                "type": "int"
-                            }
-                        ],
-                        "index": 44,
-                        "lineNumber": 83,
-                        "name": "set_count_depth",
-                        "returnType": "void"
-                    },
-                    {
-                        "access": "public",
-                        "index": 45,
-                        "lineNumber": 84,
+                        "index": 20,
+                        "lineNumber": 53,
                         "name": "subtitle_streaming",
                         "returnType": "void"
                     },
                     {
                         "access": "public",
-                        "index": 46,
-                        "lineNumber": 85,
-                        "name": "increment_counter",
-                        "returnType": "void"
-                    },
-                    {
-                        "access": "public",
-                        "arguments": [
-                            {
-                                "type": "QString"
-                            }
-                        ],
-                        "index": 47,
-                        "lineNumber": 86,
-                        "name": "set_time",
-                        "returnType": "void"
-                    },
-                    {
-                        "access": "public",
-                        "arguments": [
-                            {
-                                "type": "double"
-                            }
-                        ],
-                        "index": 48,
-                        "lineNumber": 87,
-                        "name": "write_check",
-                        "returnType": "void"
-                    },
-                    {
-                        "access": "public",
-                        "arguments": [
-                            {
-                                "type": "QString"
-                            }
-                        ],
-                        "index": 49,
-                        "lineNumber": 88,
-                        "name": "set_name",
-                        "returnType": "void"
-                    },
-                    {
-                        "access": "public",
-                        "arguments": [
-                            {
-                                "type": "int"
-                            }
-                        ],
-                        "index": 50,
-                        "lineNumber": 89,
-                        "name": "change_cam",
-                        "returnType": "void"
-                    },
-                    {
-                        "access": "public",
                         "arguments": [
                             {
                                 "type": "bool"
                             }
                         ],
-                        "index": 51,
-                        "lineNumber": 90,
+                        "index": 21,
+                        "lineNumber": 54,
                         "name": "is_subttitle",
                         "returnType": "void"
                     }

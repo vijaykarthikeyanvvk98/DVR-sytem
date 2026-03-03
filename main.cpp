@@ -22,6 +22,7 @@ int main(int argc, char *argv[])
     videoStreamer.create_directory();
 
     OpencvImageProvider *liveImageProvider(new OpencvImageProvider);
+
     QQmlApplicationEngine engine;
 
     engine.rootContext()->setContextProperty("VideoStreamer", &videoStreamer);
