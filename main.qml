@@ -41,7 +41,7 @@ ApplicationWindow {
             //VideoStreamer.openVideoCamera(0);
              VideoStreamer.openVideoCamera();
 
-            VideoStreamer.openVideoCamera2(0);
+            //VideoStreamer.openVideoCamera2(0);
             //VideoStreamer.openVideoCamera2(1);
             //VideoStreamer.openVideoCamera("tcpclientsrc host=192.168.56.1 port=5000 ! gdpdepay ! rtph264depay ! h264parse ! avdec_h264 ! videoconvert ! autovideosink");
             opencvImage.visible=true;
@@ -675,13 +675,13 @@ Button
 
             onDoubleClicked:
             {
-                if(area_15.source=="qrc:/dvr_system/images/mike_on.png")
+                /*if(area_15.source=="qrc:/dvr_system/images/mike_on.png")
                 {
                     mike_on_off.talk=false
                     area_15.source="qrc:/dvr_system/images/mike_off.png"
                     VideoStreamer.push_to_talk(true)
 
-                }
+                }*/
 
 
             }
@@ -1085,8 +1085,8 @@ RowLayout
                                     //capture_map_image()
                                     if(area_12.source=="qrc:/dvr_system/images/mike_off.png")
                                     {
-                                        VideoStreamer.push_to_talk(false)
-
+                                        //VideoStreamer.push_to_talk(false)
+                                        VideoStreamer.pushback(false)
                                         area_12.source="qrc:/dvr_system/images/mike_on.png"
                                     }
 
@@ -1110,7 +1110,7 @@ RowLayout
                                     {
                                         mike_on_off.talk=false
                                         area_12.source="qrc:/dvr_system/images/mike_off.png"
-                                        VideoStreamer.push_to_talk(true)
+                                        VideoStreamer.pushback(true)
 
                                     }
 

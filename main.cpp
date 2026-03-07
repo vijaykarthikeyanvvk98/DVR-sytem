@@ -9,6 +9,13 @@
 #include <QSplashScreen>
 
 using namespace cv;
+/**
+ * @brief
+ *
+ * @param argc
+ * @param argv[]
+ * @return int
+ */
 int main(int argc, char *argv[])
 {
     //std::cout << cv::getBuildInformation() << std::endl;

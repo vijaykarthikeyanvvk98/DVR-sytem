@@ -1,5 +1,5 @@
 #include "opencvimageprovider.h"
-
+#include <QMutexLocker>
 /**
  * @brief Constructor
  * Initializes the provider as an 'Image' type provider.
@@ -27,7 +27,8 @@ QImage OpencvImageProvider::requestImage(const QString &id, QSize *size, const Q
 {
     //Q_UNUSED(id); // ID is not used here as we serve a single stream
 
-    switch (id.toInt()) {
+    //qDebug()<<id;
+    /*switch (id.toInt()) {
     case 0:
         resultant_image = this->image;
         break;
@@ -37,7 +38,9 @@ QImage OpencvImageProvider::requestImage(const QString &id, QSize *size, const Q
     default:
         resultant_image = this->image;
         break;
-    }
+    }*/
+
+    QMutexLocker locker(&mutex);
     if (size) {
         *size = resultant_image.size();
     }
@@ -60,6 +63,7 @@ void OpencvImageProvider::updateImage(const QImage &image)
     // Check if image is valid and actually different to save processing power
     if (!image.isNull() && this->image != image) {
         this->image = image;
+        resultant_image = this->image;
         emit imageChanged(); // Signal QML that the source needs to be re-fetched
     }
 }
@@ -71,8 +75,10 @@ void OpencvImageProvider::updateImage(const QImage &image)
  */
 void OpencvImageProvider::updateImage2(const QImage &image)
 {
-    if (!image.isNull() && this->image != image) {
+    if (!image.isNull() && this->image2 != image) {
         this->image2 = image;
+        resultant_image = this->image2;
         emit imageChanged2();
+        //qDebug()<<"image Frame";
     }
 }

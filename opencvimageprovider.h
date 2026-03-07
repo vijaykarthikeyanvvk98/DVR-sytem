@@ -4,7 +4,7 @@
 #include <QObject>
 #include <QImage>
 #include <QQuickImageProvider>
-
+#include <QMutex>
 /**
  * @class OpencvImageProvider
  * @brief Bridges OpenCV image processing with the QML User Interface.
@@ -63,9 +63,10 @@ signals:
     void no_image();
 
 private:
-    QImage image; // The internal storage for the current frame to be rendered.
-    QImage image2;
-    QImage resultant_image;
+    QImage image; // The internal storage for the current frame to be rendered. /**< TODO: describe */
+    QImage image2; /**< TODO: describe */
+    QImage resultant_image; /**< TODO: describe */
+    QMutex mutex;
 };
 
 #endif // OPENCVIMAGEPROVIDER_H

@@ -12,39 +12,39 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/videoio.hpp> // Video write
 #include <opencv2/videoio/videoio.hpp>
-static VideoWriter received_video;
-static VideoWriter video, writing_video;
-static Mat resized_overlay_frame2;
-static bool recording_status = false;
-static bool exit_status=false,exit_status2=false;
+static VideoWriter received_video; /**< TODO: describe */
+static VideoWriter video, writing_video; /**< TODO: describe */
+static Mat resized_overlay_frame2; /**< TODO: describe */
+static bool recording_status = false; /**< TODO: describe */
+static bool exit_status=false,exit_status2=false; /**< TODO: describe */
 
-static Mat frame,received_frame;
-QString dst_file = "received_video.mp4 ";
-QString outputPath,outputPath2;
+static Mat frame,received_frame; /**< TODO: describe */
+QString dst_file = "received_video.mp4 "; /**< TODO: describe */
+QString outputPath,outputPath2; /**< TODO: describe */
 //Filter parameters
 //Kernel Size(only Odd and Positive for Gaussian Filter) or Filtering pixel Size for Bilateral Filter
 
 using namespace cv;
-cv::Mat push_frame;
+cv::Mat push_frame; /**< TODO: describe */
 
 
-static int second_frame_width = 0;
-static int second_frame_height=0;
-static cv::VideoCapture cap,cap2;
+static int second_frame_width = 0; /**< TODO: describe */
+static int second_frame_height=0; /**< TODO: describe */
+static cv::VideoCapture cap,cap2; /**< TODO: describe */
 //Sensors
-QTimer tUpdate;
-QTimer sub_timer;
-QString streaming_path = "";
-std::string outputPathStdString="";
-VideoStreamer *worker2;
-VideoStreamer *worker ;
-static int sub_i=1;
-static int sub_i2=2;
-static int sub_heading=1;
-static int frame_width=0;
-static int frame_height=0;
-const QString ASCII_ART = R"(
-        ##.   ##.          ##             .## .###           .#####.         .###
+QTimer tUpdate; /**< TODO: describe */
+QTimer sub_timer; /**< TODO: describe */
+QString streaming_path = ""; /**< TODO: describe */
+std::string outputPathStdString=""; /**< TODO: describe */
+VideoStreamer *worker2; /**< TODO: describe */
+VideoStreamer *worker ; /**< TODO: describe */
+static int sub_i=1; /**< TODO: describe */
+static int sub_i2=2; /**< TODO: describe */
+static int sub_heading=1; /**< TODO: describe */
+static int frame_width=0; /**< TODO: describe */
+static int frame_height=0; /**< TODO: describe */
+const QString ASCII_ART = R"( /**< TODO: describe */
+        ##.   ##.          ##             .## .###           .#####.          .###
          ###  ###           ##             .##.##             .##  ##.        ####=
           ##  ##            ##             .####              .######        ##. ##
           .####.            ##             .#####             .##.###       .#######
@@ -92,12 +92,16 @@ const QString ASCII_ART = R"(
                                             #####
                                              ###
 )";
-QStringList lines = ASCII_ART.split('\n');
-int startTime = 0;
-int duration = 1000; // 1 second per line
-static int gh=0;
-GstElement *volume=nullptr;
+QStringList lines = ASCII_ART.split('\n'); /**< TODO: describe */
+int startTime = 0; /**< TODO: describe */
+int duration = 1000; // 1 second per line /**< TODO: describe */
+static int gh=0; /**< TODO: describe */
+GstElement *volume=nullptr; /**< TODO: describe */
 
+/**
+ * @brief
+ *
+ */
 VideoStreamer::VideoStreamer()
 {
 
@@ -111,6 +115,10 @@ VideoStreamer::VideoStreamer()
 
 }
 
+/**
+ * @brief
+ *
+ */
 VideoStreamer::~VideoStreamer()
 {
     exit_status=true;
@@ -152,6 +160,10 @@ VideoStreamer::~VideoStreamer()
     }
 }
 
+/**
+ * @brief
+ *
+ */
 void VideoStreamer::streamVideo()
 {
     if (!frame.empty()) {
@@ -163,11 +175,20 @@ void VideoStreamer::streamVideo()
     }
 }
 
+/**
+ * @brief
+ *
+ * @param emittedFrame
+ */
 void VideoStreamer::catchFrame(cv::Mat emittedFrame)
 {
     frame = emittedFrame;
 }
 
+/**
+ * @brief
+ *
+ */
 void VideoStreamer::streamVideo2()
 {
 
@@ -183,6 +204,11 @@ void VideoStreamer::streamVideo2()
     }
 }
 
+/**
+ * @brief
+ *
+ * @param emittedFrame
+ */
 void VideoStreamer::catchFrame2(Mat emittedFrame)
 {
     received_frame = emittedFrame;
@@ -194,6 +220,11 @@ void VideoStreamer::catchFrame2(Mat emittedFrame)
 
 }
 
+/**
+ * @brief
+ *
+ * @param path
+ */
 void VideoStreamer::createPipeline(const QString path)
 {
     //qDebug()<<path;
@@ -370,6 +401,10 @@ void VideoStreamer::createPipeline(const QString path)
     gst_object_unref(bus);
 }
 
+/**
+ * @brief
+ *
+ */
 void VideoStreamer::startPipeline()
 {
     if(pipeline)
@@ -400,6 +435,10 @@ void VideoStreamer::startPipeline()
 
 }
 
+/**
+ * @brief
+ *
+ */
 void VideoStreamer::sendEOS()
 {
 
@@ -442,6 +481,10 @@ void VideoStreamer::sendEOS()
 
 }
 
+/**
+ * @brief
+ *
+ */
 void  VideoStreamer::qImageToCvMat()
 {
     QString imagePath(":/dvr_system/images/vikra_2.png");
@@ -458,6 +501,11 @@ void  VideoStreamer::qImageToCvMat()
 
 }
 
+/**
+ * @brief
+ *
+ * @param push_frame
+ */
 void VideoStreamer::pushFrame(Mat push_frame)
 {
     // Convert Mat to GstBuffer
@@ -505,6 +553,10 @@ void VideoStreamer::pushFrame(Mat push_frame)
 
 }
 
+/**
+ * @brief
+ *
+ */
 void VideoStreamer::reset_pipeline()
 {
     //qDebug()<<"recording";
@@ -518,6 +570,14 @@ void VideoStreamer::reset_pipeline()
 
 }
 
+/**
+ * @brief
+ *
+ * @param bus
+ * @param msg
+ * @param data
+ * @return gboolean
+ */
 gboolean VideoStreamer::bus_call(GstBus *bus, GstMessage *msg, gpointer data)
 {
     VideoStreamer *videoStream = static_cast<VideoStreamer*>(data);
@@ -544,6 +604,14 @@ gboolean VideoStreamer::bus_call(GstBus *bus, GstMessage *msg, gpointer data)
     return TRUE;
 }
 
+/**
+ * @brief
+ *
+ * @param bus
+ * @param msg
+ * @param data
+ * @return gboolean
+ */
 gboolean VideoStreamer::on_message(GstBus *bus, GstMessage *msg, gpointer data)
 {
     switch (GST_MESSAGE_TYPE(msg)) {
@@ -564,6 +632,11 @@ gboolean VideoStreamer::on_message(GstBus *bus, GstMessage *msg, gpointer data)
     return TRUE;
 }
 
+/**
+ * @brief
+ *
+ * @param value
+ */
 void VideoStreamer::pushback(bool value)
 {
     volumeElement = gst_bin_get_by_name(GST_BIN(pipeline), "volume");
@@ -584,6 +657,10 @@ void VideoStreamer::pushback(bool value)
     }
 }
 
+/**
+ * @brief
+ *
+ */
 void VideoStreamer::openVideoCamera()
 {
     int i=0;
@@ -597,10 +674,25 @@ void VideoStreamer::openVideoCamera()
         //return;
     }
 
+    //cap2.open("rtsp://admin:Vikra@123@192.168.56.50:554/video/live?channel=1&subtype=0", cv::CAP_FFMPEG);
+    cap2.open("rtsp://admin:Vikra@123@192.168.2.3:554/video/live?channel=1&subtype=0", cv::CAP_FFMPEG);
+
+    //"rtsp://admin:vikra@123@192.168.56.51:554/cam/realmonitor?channel=1&subtype=0"
+    //cap2.open("rtspsrc  location=rtsp://192.168.56.50:554/cam/realmonitor?channel=1&subtype=0 user-id=admin user-pw=vikra@123 latency=0 ! decodebin !  videoconvert ! appsink udpsrc port=5202 buffer-size=524288 ! application/x-rtp,media=audio,clock-rate=48000,encoding-name=OPUS,payload=96 ! rtpopusdepay ! opusdec ! audioconvert ! autoaudiosink ",cv::CAP_GSTREAMER);
+
+    if (!cap2.isOpened()) {
+        qDebug() << "Error opening received video stream or file";
+    }
+
+    second_frame_width = cap2.get(CAP_PROP_FRAME_WIDTH);
+    second_frame_height= cap2.get(CAP_PROP_FRAME_HEIGHT);
+
+
     VideoStreamer *worker = new VideoStreamer();
     worker->moveToThread(threadStreamer);
     QObject::connect(threadStreamer, SIGNAL(started()), worker, SLOT(streamerThreadSlot()));
     QObject::connect(worker, &VideoStreamer::emitThreadImage, this, &VideoStreamer::catchFrame);
+    QObject::connect(worker, &VideoStreamer::emitThreadImage2, this, &VideoStreamer::catchFrame2);
     //qDebug() << cap.get(cv::CAP_PROP_FPS);
     threadStreamer->start();
     //tUpdate.start();
@@ -608,8 +700,25 @@ void VideoStreamer::openVideoCamera()
         tUpdate.start(1000.0 / 30.0);
     else
         tUpdate.start(1000.0 / cap.get(cv::CAP_PROP_FPS));
+
+    if (cap2.get(cv::CAP_PROP_FPS) == 0)
+    {
+        tUpdate2.start(1000 / 40);
+        fps = 25;
+
+    }
+    else
+    {
+        tUpdate2.start(1000 / cap2.get(cv::CAP_PROP_FPS));
+        fps = cap2.get(cv::CAP_PROP_FPS);
+    }
 }
 
+/**
+ * @brief
+ *
+ * @param path
+ */
 void VideoStreamer::openVideoCamera2(QString path)
 {
     VideoStreamer *worker2 = new VideoStreamer();
@@ -628,8 +737,8 @@ void VideoStreamer::openVideoCamera2(QString path)
         threadStreamer2->wait();
         threadStreamer2->deleteLater();
     }
-    //cap2.open("rtsp://admin:Vikra@123@192.168.56.50:554/video/live?channel=1&subtype=0", cv::CAP_FFMPEG);
-    cap2.open("rtsp://admin:Vikra@123@192.168.2.3:554/video/live?channel=1&subtype=0", cv::CAP_FFMPEG);
+    cap2.open("rtsp://admin:Vikra@123@192.168.56.50:554/video/live?channel=1&subtype=0", cv::CAP_FFMPEG);
+    //cap2.open("rtsp://admin:Vikra@123@192.168.2.3:554/video/live?channel=1&subtype=0", cv::CAP_FFMPEG);
 
     //"rtsp://admin:vikra@123@192.168.56.51:554/cam/realmonitor?channel=1&subtype=0"
     //cap2.open("rtspsrc  location=rtsp://192.168.56.50:554/cam/realmonitor?channel=1&subtype=0 user-id=admin user-pw=vikra@123 latency=0 ! decodebin !  videoconvert ! appsink udpsrc port=5202 buffer-size=524288 ! application/x-rtp,media=audio,clock-rate=48000,encoding-name=OPUS,payload=96 ! rtpopusdepay ! opusdec ! audioconvert ! autoaudiosink ",cv::CAP_GSTREAMER);
@@ -661,31 +770,36 @@ void VideoStreamer::openVideoCamera2(QString path)
 
 }
 
+/**
+ * @brief
+ *
+ */
 void VideoStreamer::start_recording()
 {
     reset_pipeline();
 }
 
+/**
+ * @brief
+ *
+ */
 void VideoStreamer::streamerThreadSlot()
 {
-    cv::Mat tempFrame;
-    if (!cap.isOpened()) {
-        cap.release();
-        return;
-    }
+    cv::Mat tempFrame,tempFrame2;
+
     while (!threadStreamer->isInterruptionRequested()) {
         if(exit_status)
         {
             return;
         }
 
-        if (QThread::currentThread()->isInterruptionRequested()) {
-            cap.release();
-            return;
-        }
         cap >> tempFrame;
-        if (tempFrame.data) {
+        cap2 >> tempFrame2;
+
+        if (tempFrame.data || tempFrame2.data) {
             emit emitThreadImage(tempFrame);
+            emit emitThreadImage2(tempFrame2);
+
         }
 
         if (threadStreamer->isInterruptionRequested()) {
@@ -695,6 +809,10 @@ void VideoStreamer::streamerThreadSlot()
     }
 }
 
+/**
+ * @brief
+ *
+ */
 void VideoStreamer::streamerThreadSlot2()
 {
 
@@ -731,17 +849,29 @@ void VideoStreamer::streamerThreadSlot2()
 
 }
 
+/**
+ * @brief
+ *
+ */
 void VideoStreamer::stop_recording()
 {
     recording_status = false;
     emit stop();
 }
 
+/**
+ * @brief
+ *
+ */
 void VideoStreamer::pause_streaming()
 {
     recording_status = !recording_status;
 }
 
+/**
+ * @brief
+ *
+ */
 void VideoStreamer::create_directory()
 {
     // Get the target directory path for saving files.
@@ -778,6 +908,10 @@ void VideoStreamer::create_directory()
 }
 
 
+/**
+ * @brief
+ *
+ */
 void VideoStreamer::subtitle_streaming()
 {
 
